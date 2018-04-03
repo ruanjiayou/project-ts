@@ -1,0 +1,46 @@
+{
+  "workbench.colorTheme": "Visual Studio Dark",
+  //显示行号
+  "editor.lineNumbers": "on",
+  "editor.renderIndentGuides": true,
+  //js代码风格配置文件
+  "eslint.options": {
+    "configFile": ".vscode/.eslintrc"
+  },
+  //easyless设置less生成的目录
+  "less.compile": {
+    "out": "${workspaceRoot}\\css\\"
+  },
+  "easysass.targetDir": "./styles/",
+  //HTML格式检查
+  "htmlhint.options": {
+    "tagname-lowercase": true,
+    "attr-lowercase": true,
+    "attr-value-double-quotes": true,
+    "doctype-first": true,
+    "tag-pair": true,
+    //"spec-char-escape": true,
+    "id-unique": true,
+    "src-not-empty": true,
+    "attr-no-duplication": true,
+    "title-require": true
+  },
+  "less.lint.hexColorLength": "ignore",
+  "projectManager.sortList": "Name",
+  "workbench.iconTheme": "vscode-icons",
+  "window.zoomLevel": 0,
+  "typescript.check.npmIsInstalled": false,
+  "vsicons.dontShowNewVersionMessage": true,
+  "todohighlight.isEnable": true,
+  "explorer.confirmDelete": false,
+  "window.menuBarVisibility": "default",
+  "editor.minimap.enabled": true,
+  "editor.formatOnSave": true,
+  "vetur.validation.template": false,
+  "extensions.ignoreRecommendations": false,
+  "explorer.confirmDragAndDrop": false,
+  "git.autofetch": true,
+  "workbench.startupEditor": "welcomePage",
+  "editor.tabSize": 2,
+  "scm.diffDecorationsGutterWidth": 2
+}

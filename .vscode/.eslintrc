@@ -1,0 +1,59 @@
+{
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es6": true,
+    "node": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "parser": "babel-eslint",
+  "globals": {
+    "$": true,
+    "jQuery": true,
+    "module": true,
+    "console": true,
+    "HinterError": true,
+    "requestAnimateFrame": true,
+    "describe": true,
+    "it": true
+  },
+  "rules": {
+    "no-console": [
+      "off"
+    ],
+    "indent": [
+      "error",
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "eqeqeq": "error",
+    "no-extra-semi": [
+      "off"
+    ],
+    "linebreak-style": [
+      "error",
+      "windows"
+    ],
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "one-var": "off",
+    "no-unused-vars": [
+      "error",
+      {
+        "vars": "local"
+      }
+    ],
+    "semi": [
+      "error",
+      "always"
+    ],
+    "no-control-regex": "off"
+  }
+}

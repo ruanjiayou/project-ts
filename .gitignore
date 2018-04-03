@@ -1,0 +1,4 @@
+dist/
+node_modules/
+static/doc/
+src/configs/system.ts

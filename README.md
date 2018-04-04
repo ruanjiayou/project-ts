@@ -7,6 +7,9 @@ TODO:
 - 版本
 - 跨域
 - system.ts 有敏感信息没上传
+- √ 环境变量env传递方式
+- √ weHelper修改
+- √ migrate修改为ts?服务器不支持async/await
 ### 安装开发流程
 ```
 1.npm install

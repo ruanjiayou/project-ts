@@ -23,5 +23,10 @@ export = {
     "code": 10240,
     "statusCode": 400,
     "message": "user unauthorized!"
+  },
+  "versionNotFound": {
+    "code": 10250,
+    "statusCode": 404,
+    "message": "api version not used!"
   }
 }

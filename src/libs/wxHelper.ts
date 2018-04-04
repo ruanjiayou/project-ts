@@ -1,37 +1,63 @@
-
-import configs from '../configs/';
 import * as crypto from 'crypto';
-import models from '../models';
 import * as rp from 'request-promise';
 
-class WxTools {
-  constructor() { }
-
-  public async getAccessToken(): Promise<string> {
-    const OVERDUE_LIMIT: number = 7000; // 官方约定有效期为7200s
-    let currentConfig: any = await models.config.findById(1);
-    currentConfig = currentConfig ? currentConfig.result : null;
-    if (currentConfig && currentConfig.wxAccessToken) {
-      const now: number = new Date().getTime();
-      const updateAt: number = new Date(currentConfig.updateAt).getTime();
-      const overdue: boolean = (now - updateAt) / 1000 > OVERDUE_LIMIT;
-      if (!overdue) {
-        return currentConfig.wxAccessToken;
-      }
+/**
+ * 获取请求微信服务器API的token
+ * @param {object} wxCfg 配置对象(appid,secret,access_token,updatedAt)
+ * @returns token
+ */
+const getAccessToken = async (wxCfg) => {
+  const now = new Date().getTime();
+  const updatedAt = wxCfg.updatedAt.getTime();
+  if (wxCfg.access_token) {
+    if (now - updatedAt < 7000000) {
+      return wxCfg.access_token;
     }
-    const accessTokenOpt = {
-      url: "https://api.weixin.qq.com/cgi-bin/token",
-      qs: {
-        grant_type: "client_credential",
-        appid: process.env.wxAppid,
-        secret: process.env.wxSecret,
-      },
-      method: "GET",
-    };
-    const tokenRaw = await rp(accessTokenOpt);
-    const token = JSON.parse(tokenRaw).access_token;
-    return token;
   }
+  const tokenRaw = await rp({
+    url: 'https://api.weixin.qq.com/cgi-bin/token',
+    qs: {
+      grant_type: 'client_credential',
+      appid: wxCfg.appid,
+      secret: wxCfg.secret
+    },
+    method: 'GET'
+  });
+  wxCfg.updatedAt = updatedAt;
+  wxCfg.access_token = JSON.parse(tokenRaw).access_token
+  return wxCfg.access_token;
+}
+/**
+ * 微信信息生成token,用于登录
+ */
+const generateToken = (seed) => {
+  const hash = crypto.createHash('sha256');
+  try {
+    hash.update(seed);
+  } catch (err) {
+    console.log(err, '生成token错误');
+  }
+  return hash.digest('hex');
+}
+/**
+ * 获取用户openid
+ * @param {string} appid 小程序应用id
+ * @param {string} secret 小程序密匙
+ * @param {string} code 用户code码
+ */
+const getWxOpenId = async (appid, secret, code) => {
+  let wxInfo = await rp({
+    uri: `https://api.weixin.qq.com/sns/jscode2session?`,
+    qs: {
+      appid: appid,
+      secret: secret,
+      js_code: code,
+      grant_type: 'authorization_code'
+    },
+    method: 'GET',
+    json: true
+  });
+  return wxInfo;
 }
 
 class WXBizDataCrypt {
@@ -66,39 +92,9 @@ class WXBizDataCrypt {
   }
 }
 
-function generateToken(seed) {
-  const hash = crypto.createHash('sha256');
-  hash.update(seed);
-  return hash.digest('hex');
-}
-
-async function getWxOpenId(contextId, code) {
-  try {
-    const context = await models.Context.findById(contextId);
-    if (context && context.status) {
-      let wxInfo = await rp({
-        uri: `https://api.weixin.qq.com/sns/jscode2session?`,
-        qs: {
-          appid: context.result.wxAppId,
-          secret: context.result.wxSecret,
-          js_code: code,
-          grant_type: 'authorization_code'
-        },
-        method: 'GET',
-        json: true
-      });
-      return wxInfo;
-    } else {
-      return new Error('context not found!');
-    }
-  } catch (err) {
-    return err;
-  }
-}
-
 export default {
-  WxTools,
-  WXBizDataCrypt,
+  getAccessToken,
+  generateToken,
   getWxOpenId,
-  generateToken
+  WXBizDataCrypt
 }

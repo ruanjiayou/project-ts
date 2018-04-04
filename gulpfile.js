@@ -2,14 +2,17 @@ const gulp = require('gulp');
 const nodemon = require('gulp-nodemon');
 const sourcemaps = require('gulp-sourcemaps');
 const ts = require('gulp-typescript');
+const fs = require('fs');
 const clean = require('gulp-clean');
 const apidoc = require('gulp-apidoc');
 const tsProject = ts.createProject('tsconfig.json');
 const pm2 = require('pm2');
 const path = require('path');
-//const env = require('./config/index.js');
-//const configs = require('./dist/src/configs/loader');
-const env = { 'debug': 'APP:*' };
+
+// 生成NODE_ENV环境变量 启动项目时根据MODE读取对应env
+var createModeConfig = function (mode) {
+  fs.writeFileSync(path.join(__dirname, 'dist/node-env-mode.json'), JSON.stringify({ mode: mode }));
+};
 
 gulp.task('dist', ['clean'], () => {
   return new Promise((resolve) => {
@@ -23,6 +26,7 @@ gulp.task('dist', ['clean'], () => {
       }))
       .pipe(gulp.dest('dist'))
       .on('finish', () => {
+        createModeConfig('dev');
         return resolve();
       });
   }).catch((err) => {
@@ -42,15 +46,15 @@ gulp.task('doc', (done) => {
 
 // 本地发布(dev/test两种)
 var localPublish = (mode) => {
-  var devEnv = env;
-  devEnv.NODE_ENV = mode;
+  createModeConfig(mode);
+  const env = require('./dist/configs/env')[mode];
   var stream = nodemon({
     script: 'dist/app.js',
     watch: ['src'],
     ext: 'ts json',
     tasks: ['dist'],
     delay: '2500',
-    env: devEnv
+    env: env
   });
   stream
     .on('restart', () => { console.log('restarted!'); })
@@ -60,12 +64,14 @@ var localPublish = (mode) => {
       stream.emit('restart', 10);  // restart the server in 10 seconds
     })
     .on('exit', (code) => {
-      stream.emit('quit');
-      process.exit(code);
+      //stream.emit('quit');
+      //process.exit(code);
     });
 };
 // 线上发布(test/production两种)
 var onlinePublish = (mode) => {
+  createModeConfig(mode);
+  const env = require('./dist/configs/env')[mode];
   var pmList = () => {
     return new Promise((resolve, reject) => {
       pm2.list((err, list) => {
@@ -88,13 +94,11 @@ var onlinePublish = (mode) => {
         if (err) {
           if (err) return reject(err);
         }
-        const pm2Env = env;
-        pm2Env.NODE_ENV = mode;
-        pm2Env.PORT = 3010;
+        env.PORT = 3010;
         pm2.start({
           name: 'qingSongYiBai-server',
           script: './dist/app.js',         // Script to be run
-          env: pm2Env,
+          env: env,
         }, (err) => {
           if (err) return reject(err);
           pm2.disconnect();   // Disconnects from PM2

@@ -17,4 +17,8 @@ class Hinter extends Error {
   }
 }
 
-export default Hinter;
+function throwHinter(module, type, detail?: any) {
+  throw new Hinter(module, type, detail);
+}
+
+export default throwHinter;

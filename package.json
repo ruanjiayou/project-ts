@@ -42,7 +42,8 @@
     "redis": "^2.8.0",
     "request": "^2.85.0",
     "request-promise": "^4.2.2",
-    "sequelize": "^4.8.2"
+    "sequelize": "^4.8.2",
+    "xlsx": "^0.12.11"
   },
   "devDependencies": {
     "@types/async": "^2.0.45",

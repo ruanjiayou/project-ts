@@ -102,21 +102,23 @@ const present = (params: any) => {
             status: false,
             code: errorJson.code || 400,
             message: errorJson.message,
-            detail: err.message
+            detail: err.toString()
           });
         } else {
           throw err;
         }
       } catch (er) {
-        res.json({ status: false, code: 200, message: '没找到定义的错误json文件!', detail: er });
+        res.status(404).json({ status: false, code: 200, message: '没找到定义的错误json文件', detail: er });
       }
 
     };
     /**
      * 处理验证错误
      */
-    res.validateError = (data) => {
-      res.json({ status: false, message: data });
+    res.validateError = (err) => {
+      err.module = 'common';
+      err.type = 'invalid';
+      res.customError(err);
     };
     next();
   };

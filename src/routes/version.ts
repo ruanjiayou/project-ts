@@ -3,7 +3,7 @@ import configs from '../configs';
 import * as Debug from 'debug';
 
 const debug = Debug('APP:VERSION_ROUTE');
-const Hinter = libs.hinter;
+const throwHinter = libs.throwHinter;
 const version = configs.version;
 
 export = {
@@ -12,7 +12,7 @@ export = {
     if (version[req.params.version] === true) {
       next();
     } else {
-      next(new Hinter('common', 'versionNotFound'));
+      next(throwHinter('common', 'versionNotFound'));
     }
   }
 }

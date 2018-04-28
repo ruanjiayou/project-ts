@@ -10,6 +10,8 @@ TODO:
 - √ 环境变量env传递方式
 - √ weHelper修改
 - √ migrate修改为ts?服务器不支持async/await
+- secret 肯定会碰上改变的情况 写死在配置中不行!
+- present的status: true/false success/fail
 ### 安装开发流程
 ```
 1.npm install

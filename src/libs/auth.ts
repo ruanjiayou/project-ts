@@ -28,6 +28,26 @@ module.exports = function (app) {
 };
 */
 
+/**
+ * redis connect
+const redisClient = redis.createClient();
+const RedisStore = require("connect-redis")(session);
+configs.redis[MODE].client = redisClient;
+app.use(session({
+  store: new RedisStore(configs.redis[MODE]),
+  secret: "keyboard cat",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }
+}));
+app.use(function (req, res, next) {
+  if (!req.session) {
+    return next(new Error("Cannot connect redis."));
+  }
+  next();
+});
+ */
+
 // 2017-12-14 20:41:37 jwt验证
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';

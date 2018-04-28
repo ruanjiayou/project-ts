@@ -1,5 +1,8 @@
 import * as crypto from 'crypto';
 import * as rp from 'request-promise';
+import * as _ from 'lodash';
+import * as moment from 'moment';
+import { AssociationOptionsBelongsToMany } from 'sequelize';
 
 /**
  * 获取请求微信服务器API的token
@@ -8,7 +11,7 @@ import * as rp from 'request-promise';
  */
 const getAccessToken = async (wxCfg) => {
   const now = new Date().getTime();
-  const updatedAt = wxCfg.updatedAt.getTime();
+  const updatedAt = wxCfg.updatedAt;
   if (wxCfg.access_token) {
     if (now - updatedAt < 7000000) {
       return wxCfg.access_token;
@@ -18,14 +21,78 @@ const getAccessToken = async (wxCfg) => {
     url: 'https://api.weixin.qq.com/cgi-bin/token',
     qs: {
       grant_type: 'client_credential',
-      appid: wxCfg.appid,
-      secret: wxCfg.secret
+      appid: wxCfg.wxAppId,
+      secret: wxCfg.wxSecret
     },
     method: 'GET'
   });
   wxCfg.updatedAt = updatedAt;
   wxCfg.access_token = JSON.parse(tokenRaw).access_token
   return wxCfg.access_token;
+}
+/**
+ * 获取账号下模板消息列表
+ * @param {object} wxCfg 微信配置信息
+ * @param {number} page 页码
+ * 
+ */
+const getNotifyTpl = async (wxCfg, page: number = 1, offset: number = 20) => {
+  const access_token = getAccessToken(wxCfg);
+  const notifies = await rp({
+    url: 'https://api.weixin.qq.com/cgi-bin/wxopen/template/list',
+    qs: {
+      access_token: access_token,
+      offset: page,
+      count: offset
+    },
+    method: 'POST'
+  });
+  return notifies;
+}
+/**
+ * 发送模板消息
+ * @param {string} touser 用户openid
+ * @param {string} tplId 模板id
+ * @param {string} formId formId
+ * @param {object} data 数据
+ */
+const sendTplNotify = async (models, wxCfg, data) => {
+  // 0.access_token
+  const access_token = await getAccessToken(wxCfg);
+  const tplData: any = {
+    touser: data.openid,
+    template_id: data.tplId
+  };
+  let type = data.type;
+  // 1.formId
+  const notify = await models.Notify.findOne({ where: { type: type, openid: data.openid, createdAt: { gt: moment().subtract(7, 'd').toDate() } } });
+  if (_.isNil(notify)) {
+    return;
+  } else {
+    tplData.form_id = notify.formId;
+  }
+  // 2.keywords
+  const keywords: any = {};
+  data.data.forEach((item, index) => {
+    keywords[`keyword${index + 1}`] = { value: item, color: '#005397' };
+  });
+  tplData.data = keywords;
+  // 3.发送请求
+  const res = await rp({
+    url: 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send',
+    qs: {
+      access_token: access_token
+    },
+    body: tplData,
+    json: true,
+    method: 'POST'
+  });
+  // 4.删除formId
+  await notify.destroy();
+  if (res.errmsg !== 'ok') {
+    console.log(res, 'template notify send fail!');
+  }
+  return res;
 }
 /**
  * 微信信息生成token,用于登录
@@ -57,6 +124,9 @@ const getWxOpenId = async (appid, secret, code) => {
     method: 'GET',
     json: true
   });
+  if (typeof wxInfo.openid !== 'string') {
+    throw new Error('获取openid失败!');
+  }
   return wxInfo;
 }
 
@@ -96,5 +166,7 @@ export default {
   getAccessToken,
   generateToken,
   getWxOpenId,
-  WXBizDataCrypt
+  WXBizDataCrypt,
+  getNotifyTpl,
+  sendTplNotify
 }

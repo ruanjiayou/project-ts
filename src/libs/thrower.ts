@@ -2,7 +2,7 @@
  * 自定义错误类型
  */
 
-class Hinter extends Error {
+class CustomError extends Error {
   public module: string;
   public type: string;
   public time: Date;
@@ -17,8 +17,8 @@ class Hinter extends Error {
   }
 }
 
-function throwHinter(module, type, detail?: any) {
-  throw new Hinter(module, type, detail);
+function thrower(module, type, detail?: any) {
+  throw new CustomError(module, type, detail);
 }
 
-export default throwHinter;
+export { thrower }

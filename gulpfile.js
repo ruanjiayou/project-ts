@@ -47,7 +47,7 @@ gulp.task('doc', (done) => {
 // 本地发布(dev/test两种)
 var localPublish = (mode) => {
   createModeConfig(mode);
-  const env = require('./dist/configs/env')[mode];
+  const env = require('./dist/configs/env').env[mode];
   var stream = nodemon({
     script: 'dist/app.js',
     watch: ['src'],
@@ -72,6 +72,7 @@ var localPublish = (mode) => {
 var onlinePublish = (mode) => {
   createModeConfig(mode);
   const env = require('./dist/configs/env')[mode];
+  const sys = require('./dist/configs/system').system;
   var pmList = () => {
     return new Promise((resolve, reject) => {
       pm2.list((err, list) => {
@@ -94,9 +95,10 @@ var onlinePublish = (mode) => {
         if (err) {
           if (err) return reject(err);
         }
-        env.PORT = 3010;
+        // 可在这里修改env的port
+        // env.port = 3010;
         pm2.start({
-          name: 'qingSongYiBai-server',
+          name: sys.project,
           script: './dist/app.js',         // Script to be run
           env: env,
         }, (err) => {
@@ -126,19 +128,19 @@ var onlinePublish = (mode) => {
     });
   });
 };
-
+// 本地开发,连本地数据库
 gulp.task('local:dev', ['dist'], () => {
   localPublish('dev');
 });
-
+// 本地开发,连测试数据库
 gulp.task('local:test', ['dist'], () => {
   localPublish('test');
 });
-
+// 测试服务器环境
 gulp.task('online:test', ['dist', 'doc'], () => {
   onlinePublish('test');
 });
-
+// 线上服务器环境
 gulp.task('online:production', ['dist', 'doc'], () => {
   onlinePublish('production');
 });

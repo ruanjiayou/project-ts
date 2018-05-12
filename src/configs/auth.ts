@@ -1,4 +1,4 @@
-export = {
+const auth = {
   key: 'Authorization',
   type: 'JWT',
   alg: 'HS256',
@@ -6,3 +6,6 @@ export = {
   secret: 'qiaoliting',
   salt: '89757'
 };
+export {
+  auth
+}

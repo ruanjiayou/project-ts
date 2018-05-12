@@ -1,35 +1,30 @@
 import * as path from 'path';
-import * as fs from 'fs';
+import { loader } from './libs/loader';
 const dir = path.join(__dirname, 'routes');
-const extension = '.js';
 
 const routes = [];
-
-function scanner(dirname, app) {
-  fs.readdirSync(dirname).forEach((file) => {
-    let fullname = path.join(dirname, file);
-    let ext = path.extname(file);
-    if (fs.existsSync(fullname) && fs.lstatSync(fullname).isDirectory()) {
-      // 递归遍历目录
-      scanner(fullname, app);
-    } else if (fullname !== module.filename && ext.toLowerCase() === extension) {
-      // 路由小模块
-      let route = require(fullname);
-      Object.keys(route).forEach((key) => {
-        // 转化为可以排序的对象
-        const [method, path] = key.split(' ');
-        //app[method](path, route[key]);
-        const o = {
-          type: method,
-          path: path,
-          handle: route[key]
-        };
-        routes.push(o);
-      });
-    }
+const handler = (info) => {
+  // 路由小模块
+  const route = require(info.fullpath);
+  Object.keys(route).forEach(key => {
+    // 转化为可以排序的对象
+    const [method, path] = key.split(' ');
+    const o = {
+      type: method,
+      path: path,
+      handle: route[key]
+    };
+    routes.push(o);
   });
-}
+};
 
+loader(handler, {
+  dir: dir
+});
+/**
+ * 调整路由顺序
+ * @param arr 路由函数数组
+ */
 function adjustor(arr) {
   function compare(str1, str2) {
     let len1 = str1.length,
@@ -61,7 +56,6 @@ function adjustor(arr) {
 }
 
 function router(app) {
-  scanner(dir, app);
   // 排序
   adjustor(routes);
   // 挂载到app上

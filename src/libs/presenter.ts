@@ -7,12 +7,12 @@
 import * as _ from 'lodash';
 import * as errorsJson from '../errors';
 
-const present = (params: any) => {
+const SUCCESS = 'success', FAIL = 'fail';
+const presenter = (params: any) => {
   // 默认设置 分页传参字段/错误提示文件夹
   let d = {
     limit: 'limit',
     page: 'page',
-    search: 'search',
     order: 'order',
     defaultLang: 'zh-cn'
   };
@@ -51,7 +51,7 @@ const present = (params: any) => {
       let rows = result ? result.rows.map(function (item) { return item.get({ plain: true }); }) : [];
       let total = result ? result.count : 0;
       let r = {
-        status: true,
+        status: SUCCESS,
         result: rows,
         paging: {
           page: query.page,
@@ -74,13 +74,13 @@ const present = (params: any) => {
       }
       return res.json(_.assign(
         {
-          status: result === null ? 'fail' : 'success'
+          status: result === null ? FAIL : SUCCESS
         }, {
           result: result
         }, params));
     };
     res.success = () => {
-      res.json({ status: true });
+      res.json({ status: SUCCESS });
     }
     /**
      * 处理自定义返回错误
@@ -99,7 +99,7 @@ const present = (params: any) => {
         }
         if (errorJson) {
           return res.status(errorJson.statusCode).json({
-            status: false,
+            status: FAIL,
             code: errorJson.code || 400,
             message: errorJson.message,
             detail: err.toString()
@@ -108,7 +108,7 @@ const present = (params: any) => {
           throw err;
         }
       } catch (er) {
-        res.status(404).json({ status: false, code: 200, message: '没找到定义的错误json文件', detail: er });
+        res.status(404).json({ status: FAIL, code: 200, message: '没找到定义的错误json文件', detail: er });
       }
 
     };
@@ -117,11 +117,11 @@ const present = (params: any) => {
      */
     res.validateError = (err) => {
       err.module = 'common';
-      err.type = 'invalid';
+      err.type = 'validation';
       res.customError(err);
     };
     next();
   };
 };
 
-export default present;
+export { presenter }

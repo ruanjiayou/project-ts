@@ -1,15 +1,15 @@
-import * as  fs from 'fs';
-import * as  path from 'path';
-let libs: any = {};
+import * as _ from 'lodash';
+import { loader } from '../libs/loader';
 
-fs.readdirSync(__dirname).forEach((file) => {
-  let fullPath = path.join(__dirname, file);
-  let ext = path.extname(file).toLocaleLowerCase();
-  let filename = file.substr(0, file.length - ext.length);
+const libs: any = {};
 
-  if (fullPath !== __filename && ext === '.js') {
-    libs[filename] = require(fullPath).default;
+loader(
+  (info) => {
+    if (__filename !== info.fullpath) {
+      _.assign(libs, require(info.fullpath));
+    }
+  }, {
+    dir: __dirname
   }
-});
-
+);
 export default libs;

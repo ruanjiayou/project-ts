@@ -1,17 +1,3 @@
-TODO:
-- 日志
-- 环境变量
-- i18n
-- 缓存队列
-- 上传
-- 版本
-- 跨域
-- system.ts 有敏感信息没上传
-- √ 环境变量env传递方式
-- √ weHelper修改
-- √ migrate修改为ts?服务器不支持async/await
-- secret 肯定会碰上改变的情况 写死在配置中不行!
-- present的status: true/false success/fail
 ### 安装开发流程
 ```
 1.npm install
@@ -32,5 +18,11 @@ TODO:
 - 启动测试环境 gulp online:test
 #### 每次发布测试前的重要修改记录
 ```
-
+TODO:
+libs和configs文件夹 不循环遍历;必须验证是文件类型:为了放adapter这样的文件夹...
+gulp中task类型任务
+- i18n
+- 缓存队列
+- 上传
+- secret 肯定会碰上改变的情况 写死在配置中不行!
 ```

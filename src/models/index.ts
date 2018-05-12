@@ -1,13 +1,13 @@
 import * as  fs from 'fs';
 import * as  path from 'path';
 import * as  Sequelize from 'sequelize';
-import configs from '../configs';
-import libs from '../libs';
+import { mysql } from '../configs/mysql';
+import { loader } from '../libs/loader';
 
 const MODE = process.env.NODE_ENV;
 // TODO:日志模块
 //const logger = libs.log;
-const mysqlCfg = configs.mysql[MODE];
+const mysqlCfg = mysql[MODE];
 const models: any = {
   Op: null,
   sequelize: null
@@ -34,18 +34,18 @@ const DB = new Sequelize(
   }
 );
 
-fs.readdirSync(__dirname).forEach((file) => {
-  let fullPath = path.join(__dirname, file);
-  let ext = path.extname(file).toLocaleLowerCase();
-  let filename = file.substr(0, file.length - ext.length);
-
-  if (fullPath !== __filename && ext === '.js') {
-    let fn = require(fullPath).default;
+const handler = (info) => {
+  if (__filename !== info.fullpath) {
+    let fn = require(info.fullpath).default;
     let model = fn(DB, Sequelize);
     models[model.name] = model;
   }
-});
+}
 
+loader(handler, {
+  dir: __dirname
+});
+// 添加约束
 for (let k in models) {
   if (typeof models[k] === 'function') {
     models[k].associate(models);

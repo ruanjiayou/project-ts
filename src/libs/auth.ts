@@ -51,11 +51,10 @@ app.use(function (req, res, next) {
 // 2017-12-14 20:41:37 jwt验证
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
-import Hinter from './hinter';
-import congfigs from '../configs';
+import { thrower } from './thrower';
 import configs from '../configs';
 
-const authConfig = congfigs.auth;
+const authConfig = configs.auth;
 /**
  * 采用sha1 + salt
  */
@@ -87,16 +86,16 @@ function decode(req) {
     try {
       token = jwt.verify(token.split(' ')[1], authConfig.secret);
     } catch (err) {
-      console.log(err);
-      throw new Hinter('auth', 'tokenExpired');
+      thrower('auth', 'tokenExpired');
     }
   } else {
-    throw new Hinter('auth', 'tokenNotFound');
+    thrower('auth', 'tokenNotFound');
   }
   return token;
 };
-export default {
+const auth = {
   encrypt,
   encode,
   decode
-};
+}
+export { auth }

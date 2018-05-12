@@ -1,11 +1,11 @@
-export = {
+const mysql = {
   dev: {
     "username": "root",
     "password": "",
     "host": "127.0.0.1",
     "port": 3306,
     "dialect": "mysql",
-    "database": "qsyb",
+    "database": "project_template",
     "timezone": "+08:00",
     "pool": {
       "max": 200,
@@ -38,4 +38,7 @@ export = {
       "idle": 10000
     }
   }
-};
+}
+export {
+  mysql
+}

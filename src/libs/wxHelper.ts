@@ -2,7 +2,6 @@ import * as crypto from 'crypto';
 import * as rp from 'request-promise';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { AssociationOptionsBelongsToMany } from 'sequelize';
 
 /**
  * 获取请求微信服务器API的token
@@ -161,12 +160,14 @@ class WXBizDataCrypt {
     }
   }
 }
-
-export default {
+const wxHelper = {
   getAccessToken,
   generateToken,
   getWxOpenId,
   WXBizDataCrypt,
   getNotifyTpl,
   sendTplNotify
+}
+export default {
+  wxHelper
 }

@@ -55,7 +55,7 @@ export default (sequelize, DataTypes) => {
     });
   // 表间的关系
   model.associate = (models) => {
-
+    // 中间表要点: belongsToMany() 要有as,through里也要as
   }
   // 表的初始化数据
   model.seed = async () => {

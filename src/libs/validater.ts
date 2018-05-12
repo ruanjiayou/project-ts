@@ -27,14 +27,11 @@ function _str2arr(str, sperator = ',') {
   return str.split(sperator).map((item) => { return item.trim(); });
 }
 
-class Validator {
+class Validater {
   rules: any;
   messages: any;
   methods: any;
-  constructor(o, lang) {
-    if (_.isEmpty(lang)) {
-      lang = 'zh-ch';
-    }
+  constructor(o, lang = 'zh-cn') {
     if (_.isEmpty(o)) {
       o = { rules: {}, methods: {}, messages: {} };
     }
@@ -45,7 +42,7 @@ class Validator {
   }
   error(o) {
     if (typeof o === 'object') {
-      o = Validator.compile(this.messages[o.rule], o);
+      o = Validater.compile(this.messages[o.rule], o);
     }
     let err: any = new Error(o);
     err.validate = true;
@@ -419,4 +416,4 @@ class Validator {
   }
 }
 
-export default Validator;
+export { Validater }

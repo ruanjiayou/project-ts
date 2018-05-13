@@ -59,7 +59,7 @@ const authConfig = configs.auth;
  * 采用sha1 + salt
  */
 function encrypt(str) {
-  const hmac = crypto.createHmac('sha1', authConfig.salt);
+  const hmac = crypto.createHmac('sha1', authConfig.tokenSalt);
   hmac.update(str);
   return hmac.digest('hex');
 }

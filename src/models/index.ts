@@ -43,7 +43,8 @@ const handler = (info) => {
 }
 
 loader(handler, {
-  dir: __dirname
+  dir: __dirname,
+  recusive: true
 });
 // 添加约束
 for (let k in models) {

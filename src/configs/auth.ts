@@ -4,7 +4,8 @@ const auth = {
   alg: 'HS256',
   exp: 7 * 24 * 60 * 60,
   secret: 'qiaoliting',
-  salt: '89757'
+  tokenSalt: '89757',
+  pasWDSalt: '!@#$%^&*0a'
 };
 export {
   auth

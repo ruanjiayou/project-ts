@@ -19,9 +19,24 @@ export = {
     "statusCode": 401,
     "message": "申请失败"
   },
-  "unauthorized": {
+  "authFail": {
     "code": 10140,
     "statusCode": 401,
     "message": "验证失败"
+  },
+  "notFound": {
+    "code": 10150,
+    "statusCode": 404,
+    "message": "账号不存在"
+  },
+  "existed": {
+    "code": 10160,
+    "statusCode": 404,
+    "message": "账号不存在"
+  },
+  "accountError": {
+    "code": 10170,
+    "statusCode": 404,
+    "message": "账号或密码错误"
   }
 }

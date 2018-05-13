@@ -6,7 +6,7 @@
  */
 import models from '../models';
 
-class BLL {
+class BaseBLL {
   model: any;
   models = models;
   async create(req, t = {}) {
@@ -53,4 +53,4 @@ class BLL {
   };
 }
 
-export { BLL }
+export { BaseBLL }

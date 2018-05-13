@@ -1,3 +1,5 @@
+.tmp/
+log/
 dist/
 node_modules/
 static/doc/

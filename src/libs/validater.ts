@@ -1,4 +1,6 @@
 const _ = require('lodash');
+const fs = require('fs');
+const path = require('path');
 const moment = require('moment');
 
 const messages = {
@@ -19,7 +21,8 @@ const messages = {
     'max': '{{field}}的值最大为{{value}}!',
     'minlength': '{{field}}的长度最小为{{value}}!',
     'maxlength': '{{field}}的长度最大为{{value}}!',
-    'file': '{{data}} 不是预期({{value}})的文件格式!'
+    'file': '{{data}} 不是预期{{value}}的文件格式!',
+    'size': '{{field}}的文件大于{{value}}'
   }
 };
 
@@ -29,13 +32,15 @@ function _str2arr(str, sperator = ',') {
 
 class Validater {
   rules: any;
+  files: any;
   messages: any;
   methods: any;
   constructor(o, lang = 'zh-cn') {
     if (_.isEmpty(o)) {
-      o = { rules: {}, methods: {}, messages: {} };
+      o = { rules: {}, files: {}, methods: {}, messages: {} };
     }
     this.rules = o.rules;
+    this.files = o.files || {};
     this.messages = o.messages || messages[lang];
     this.methods = o.methods || {};
     this.parse();
@@ -64,13 +69,18 @@ class Validater {
     this.check(res);
     return res;
   }
+  validateFile(files, cb = null) {
+    const res = this.filter(this.files, 'files');
+    this.check(files);
+    return res;
+  }
   /**
    * 按rules的字段,过滤额外的字段
    */
-  filter(data) {
+  filter(data, type = 'rules') {
     let res = {};
-    for (let k in this.rules) {
-      let rule = this.rules[k];
+    for (let k in this[type]) {
+      let rule = this[type][k];
       if (!_.isUndefined(data[k])) {
         if (rule.boolean) {
           res[k] = data[k] && data[k] !== 'false' ? true : false;
@@ -104,6 +114,9 @@ class Validater {
       switch (k) {
         case 'file':
           rule.file = v.split(',').map(function (s) { return s.trim(); });
+          break;
+        case 'size':
+          rule.size = parseInt(v);
           break;
         case 'methods':
           let that: any = this;
@@ -156,7 +169,7 @@ class Validater {
           break;
       }
     }
-    if (_.isNil(rule.string) && _.isNil(rule.text)) {
+    if (_.isNil(rule.string) && _.isNil(rule.text) && _.isNil(rule.file)) {
       delete rule.length;
     }
     if (_.isNil(rule.int) && _.isNil(rule.float)) {
@@ -176,6 +189,10 @@ class Validater {
       let str = this.rules[k];
       this.rules[k] = this._str2rule(str);
     }
+    for (let k in this.files) {
+      let str = this.files[k];
+      this.files[k] = this._str2rule(str);
+    }
     return this;
   }
   /**
@@ -183,9 +200,9 @@ class Validater {
    * v 值
    * kk 验证规则
    */
-  check(data) {
-    for (let k in this.rules) {
-      let v = data[k], rule = this.rules[k];
+  check(data, type = 'rules') {
+    for (let k in this['rules']) {
+      let v = data[k], rule = this['rules'][k];
       const detailInfo = { field: k, data: v, rule: '', value: '' };
       // if规则和nullable的区别:nullable,data中没字段就不验证;if,为false时会主动删除data中的字段
       // if的顺序不能顺便
@@ -248,7 +265,37 @@ class Validater {
         this.error(detailInfo);
       }
       if (rule.file) {
-
+        let len = v.length;
+        // 验证数量: 要么nullable要么至少一张图
+        if (len === 0 && _.isNil(rule.nullable)) {
+          detailInfo.rule = 'required';
+          this.error(detailInfo);
+        }
+        if (rule.length && len < rule.length.minlength) {
+          detailInfo.rule = 'minlength';
+        }
+        if (rule.length && len > rule.length.maxlength) {
+          detailInfo.rule = 'maxlength';
+        }
+        // 验证类型/大小
+        for (let i = 0; i < v.length; i++) {
+          const file = v[0];
+          const states = fs.statSync(file.path);
+          const ext = path.ext(file.originalname).toLowerCase();
+          file.ext = ext;
+          if (rule.file.indexOf(ext) === -1) {
+            detailInfo.rule = 'file';
+            detailInfo.data = file.ext;
+            detailInfo.value = `[${rule.file.join(',')}]`;
+            this.error(detailInfo);
+          }
+          // 默认2M
+          if (file.size > rule.size || 2000000) {
+            detailInfo.rule = 'size';
+            detailInfo.data = file.size;
+            detailInfo.value = rule.size || 2000000;
+          }
+        }
       }
       if (rule.enum && -1 === rule.enum.indexOf(v)) {
         detailInfo.rule = 'enum';

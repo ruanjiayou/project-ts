@@ -10,7 +10,7 @@ import libs from "./libs";
 import * as task from "./tasks/test";
 
 const app = express();
-const { hinter, logger, uploader, presenter } = libs;
+const { hinter, CustomError, logger, uploader, presenter, i18n } = libs;
 const errorLogger = logger('error');
 /**
  * Express configuration.
@@ -21,6 +21,8 @@ app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
+// i18n
+app.use(i18n.init);
 // 文件处理中间件
 app.use(uploader);
 // 自动清理文件...日
@@ -60,7 +62,7 @@ router(app);
 
 // 7.error异常处理
 app.use(function (err, req, res, next) {
-  if (err instanceof hinter) {
+  if (err instanceof CustomError) {
     // 自定义错误
     res.customError(err);
   } else if (err.validate) {

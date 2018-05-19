@@ -5,12 +5,12 @@ const logger = {
     },
     error: {
       type: 'file',
-      filename: './log/error.log',
+      filename: './.log/error.log',
       level: 'DEBUG',
     },
     access: {
       type: 'DateFile',
-      filename: './log/access',
+      filename: './.log/access',
       pattern: '-yyyy-MM-dd.log',
       alwaysIncludePattern: true
     }

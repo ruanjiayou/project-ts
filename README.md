@@ -1,4 +1,4 @@
-### 安装开发流程
+### 安装开发流程(configs下的system文件没有上传)
 ```
 1.npm install
 2.gulp dev
@@ -19,11 +19,14 @@
 #### 每次发布测试前的重要修改记录
 ```
 TODO:
-libs和configs文件夹 不循环遍历;必须验证是文件类型:为了放adapter这样的文件夹...
-gulp中task类型任务
-- i18n
+- gulp中task类型任务
 - 缓存队列
 - secret 肯定会碰上改变的情况 写死在配置中不行!
 - 权限系统
 - bll按车辆辆项目的改
+- email队列
+- mongodb存小说数据
+- 数据静态化
+- redis缓存场景:少修改 数据多
+- user的登录注册流程,个人信息查询修改
 ```

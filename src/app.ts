@@ -7,10 +7,9 @@ import * as redis from "redis";
 import router from "./router";
 import configs from "./configs";
 import libs from "./libs";
-import * as task from "./tasks/test";
 
 const app = express();
-const { hinter, CustomError, logger, uploader, presenter, i18n } = libs;
+const { thrower, CustomError, logger, uploader, presenter, i18n } = libs;
 const errorLogger = logger('error');
 /**
  * Express configuration.
@@ -68,19 +67,18 @@ app.use(function (err, req, res, next) {
   } else if (err.validate) {
     // 验证错误
     res.validateError(err);
-  }
-  else if (err) {
-    res.status(500).send({ status: 'false', message: `${err.message}` });
+  } else if (err) {
+    res.status(500).send({ status: 'fail', message: `${err.message}` });
   } else {
-    next();
+    res.status(404);
+    res.json({
+      status: 'fail',
+      path: `${req.originalUrl}`,
+      message: 'NOT FOUND'
+    });
   }
 });
-app.use((req, res, next) => {
-  res.status(404);
-  res.json({
-    errorInfo: 'NOT FOUND'
-  });
-});
+
 // 8.宕机
 process.on('uncaughtException', (err) => {
   errorLogger.error(`uncaughtException ${err.toString()}`);

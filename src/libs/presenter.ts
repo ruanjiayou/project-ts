@@ -20,6 +20,9 @@ const presenter = (params: any) => {
     d[k] = params[k];
   }
   return (req, res, next) => {
+    if (_.isEmpty(req.files)) {
+      req.files = {};
+    }
     /**
      * 查询前计算limit和offset
      */
@@ -36,6 +39,7 @@ const presenter = (params: any) => {
       }
       req.query.page = page;
       req.query.limit = limit;
+      //TODO:order处理,虽然qs强大但仍需自己处理一下
       return {
         where: {},
         offset: (page - 1) * limit,
@@ -72,12 +76,7 @@ const presenter = (params: any) => {
       if (result && result.get) {
         result = result.get({ plain: true });
       }
-      return res.json(_.assign(
-        {
-          status: result === null ? FAIL : SUCCESS
-        }, {
-          result: result
-        }, params));
+      return res.json(_.assign({ status: result === null ? FAIL : SUCCESS }, { result: result }, params));
     };
     res.success = () => {
       res.json({ status: SUCCESS });

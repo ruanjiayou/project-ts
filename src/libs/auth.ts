@@ -58,8 +58,8 @@ const authConfig = configs.auth;
 /**
  * 采用sha1 + salt
  */
-function encrypt(str) {
-  const hmac = crypto.createHmac('sha1', authConfig.tokenSalt);
+function encrypt(str, salt) {
+  const hmac = crypto.createHmac('sha1', salt);
   hmac.update(str);
   return hmac.digest('hex');
 }
@@ -80,7 +80,7 @@ function encode(data) {
  * 一定要catch这个函数
  */
 function decode(req) {
-  let key = authConfig.key.toLocaleLowerCase();
+  let key = authConfig.key;
   let token = req.headers[key] || (req.body && req.body[key]) || (req.query && req.query[key]);
   if (token) {
     try {

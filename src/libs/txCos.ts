@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import { thrower } from './thrower';
 const fs = require('fs');
 const path = require('path');
-const cosCfg = configs.cos;
+const cosCfg = configs.txCos;
 const COS = require('cos-nodejs-sdk-v5');
 
 const cos = new COS({

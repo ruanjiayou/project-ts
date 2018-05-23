@@ -10,7 +10,7 @@ const handler = (info) => {
     // 转化为可以排序的对象
     const [method, path] = key.split(' ');
     const o = {
-      type: method,
+      type: method.toLowerCase(),
       path: path,
       handle: route[key]
     };

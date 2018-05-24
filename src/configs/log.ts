@@ -9,7 +9,7 @@ const logger = {
       level: 'DEBUG',
     },
     access: {
-      type: 'DateFile',
+      type: 'dateFile',
       filename: './.log/access',
       pattern: '-yyyy-MM-dd.log',
       alwaysIncludePattern: true

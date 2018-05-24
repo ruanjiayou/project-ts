@@ -35,6 +35,12 @@ export default (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: ''
+    },
+    salt: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '123456789abcdefg',
+      comments: '随机盐'
     }
   }, {
       freezeTableName: true,
@@ -61,9 +67,9 @@ export default (sequelize, DataTypes) => {
     await model.bulkCreate(data);
   }
   // 实例方法
-  model.prototype.auth = password => {
-    const hmac = crypto.createHmac('sha1', auth.pasWDSalt)
-    hmac.update(`${password}.${this.rand}`);
+  model.prototype.comparePSW = password => {
+    const hmac = crypto.createHmac('sha1', this.salt);
+    hmac.update(password);
     return this.password === hmac.digest('hex').toUpperCase();
   }
   return model;

@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 export default (sequelize, DataTypes) => {
   const model = sequelize.define('User', {
     id: {
@@ -72,11 +74,10 @@ export default (sequelize, DataTypes) => {
     await model.bulkCreate(data);
   }
   // instance method
-  //TODO: password是前段的md5加密,这里要加一层sha256加密,虽然彩虹表
   model.prototype.comparePSW = function (password) {
-    const res = this.dataValues;
-    const salt = res.salt;
-    return res.password === password;
+    const hmac = crypto.createHmac('sha1', this.salt);
+    hmac.update(password);
+    return this.password === hmac.digest('hex').toUpperCase();
   };
   model.prototype.calculatePSW = function (password, salt) {
     return password;

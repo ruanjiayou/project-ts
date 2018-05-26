@@ -8,7 +8,7 @@ const version = configs.version;
 
 export = {
   'use /:version(v[0-9]+)/*': async (req, res, next) => {
-    debug(`ENTER ${req.method} ${req.originalUrl} ROUTE`);
+    debug(`enter USE ${req.originalUrl} route`);
     if (version[req.params.version] === true) {
       next();
     } else {

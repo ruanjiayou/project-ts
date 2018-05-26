@@ -38,6 +38,9 @@ const handler = (info) => {
   if (__filename !== info.fullpath) {
     let fn = require(info.fullpath).default;
     let model = fn(DB, Sequelize);
+    model.getAttributes = function () {
+      return Object.keys(this.attributes);
+    }
     models[model.name] = model;
   }
 }

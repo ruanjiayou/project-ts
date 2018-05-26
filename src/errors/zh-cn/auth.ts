@@ -32,7 +32,7 @@ export = {
   "existed": {
     "code": 10160,
     "statusCode": 404,
-    "message": "账号不存在"
+    "message": "账号已存在"
   },
   "accountError": {
     "code": 10170,

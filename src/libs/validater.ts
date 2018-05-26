@@ -4,7 +4,7 @@ const path = require('path');
 const moment = require('moment');
 
 const messages = {
-  'zh-ch': {
+  'zh-cn': {
     'required': '{{field}} 字段不能为空!',
     'url': '{{field}} 字段的值 {{data}} 不是有效的url!',
     'email': '{{field}} 字段的值 {{data}} 不是有效的邮件格式!',
@@ -37,7 +37,7 @@ class Validater {
   methods: any;
   constructor(o, lang = 'zh-cn') {
     if (_.isEmpty(o)) {
-      o = { rules: {}, files: {}, methods: {}, messages: {} };
+      o = { rules: {}, files: {}, methods: {}, messages: null };
     }
     this.rules = o.rules;
     this.files = o.files || {};

@@ -19,7 +19,8 @@ const handler = (info) => {
 };
 
 loader(handler, {
-  dir: dir
+  dir: dir,
+  recusive: true
 });
 /**
  * 调整路由顺序

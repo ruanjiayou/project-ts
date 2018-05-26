@@ -22,6 +22,6 @@ const logger = {
     }
   }
 }
-export = {
+export {
   logger
 }

@@ -2,9 +2,11 @@ import libs from '../libs';
 import * as _ from 'lodash';
 import * as mime from 'mime';
 import BaseBLL from './BaseBLL';
+import { uploader } from '../libs/uploader';
+import { auth as authCfg } from '../configs/auth';
 
-const systemCfg = require('../configs/system');
-const { auth, thrower, Validator, wxHelper, Cos } = libs;
+const tokenCfg: any = authCfg;
+const { auth, thrower, Validater, wxHelper, Cos } = libs;
 
 class UserBLL extends BaseBLL {
   constructor() {
@@ -13,14 +15,15 @@ class UserBLL extends BaseBLL {
   }
   // 微信登录部分
   async auth(req) {
-    const key = systemCfg.authKey;
+    const key = tokenCfg.authKey;
     const authority = req.headers[key] || (req.body && req.body[key]) || (req.query && req.query[key]);
     if (_.isNil(authority)) {
       thrower('auth', 'tokenNotFound');
     }
-    const user: any = await this.get({ authority: authority });
+    const query = { authority: authority };
+    const user: any = await this.get({ query });
     if (_.isNil(user)) {
-      thrower('auth', 'error');
+      thrower('auth', 'authFail');
     }
     return user;
   }
@@ -30,14 +33,15 @@ class UserBLL extends BaseBLL {
    * @returns {string} openid的sha256...
    */
   async authIn(data) {
-    const validation = new Validator({
+    const validation = new Validater({
       rules: {
         code: 'required|string'
       }
     });
     const input = validation.validate(data);
-    const wxInfo = await wxHelper.getWxOpenId(systemCfg.wxAppId, systemCfg.wxSecret, input.code);
-    const user = await this.get({ openid: wxInfo.openid });
+    const wxInfo = await wxHelper.getWxOpenId(tokenCfg.wxAppId, tokenCfg.wxSecret, input.code);
+    const query = { openid: wxInfo.openid };
+    const user = await this.get({ query });
     if (_.isNil(user)) {
       thrower('auth', 'error');
     }
@@ -46,7 +50,7 @@ class UserBLL extends BaseBLL {
     return wxToken;
   }
   async authUp(data) {
-    const validation = new Validator({
+    const validation = new Validater({
       rules: {
         code: 'required|string',
         phone: 'nullable|string',
@@ -54,8 +58,9 @@ class UserBLL extends BaseBLL {
       }
     });
     const input = validation.validate(data);
-    const wxInfo = await wxHelper.getWxOpenId(systemCfg.wxAppId, systemCfg.wxSecret, input.code);
-    let user = await this.get({ openid: wxInfo.openid });
+    const wxInfo = await wxHelper.getWxOpenId(tokenCfg.wxAppId, tokenCfg.wxSecret, input.code);
+    const query = { openid: wxInfo.openid };
+    let user = await this.get({ query });
     if (_.isNil(user)) {
       const wxToken = wxHelper.generateToken(wxInfo.openid);
       input.authority = wxToken;
@@ -68,53 +73,57 @@ class UserBLL extends BaseBLL {
   // 密码登录部分
   // 验证
   async sign(req) {
-    const key = systemCfg.signKey;
-    const signatrue = req.headers[key] || (req.body && req.body[key]) || (req.query && req.query[key]);
-    if (_.isNil(signatrue)) {
+    const key = tokenCfg.signKey;
+    const signature = req.headers[key] || (req.body && req.body[key]) || (req.query && req.query[key]);
+    if (_.isNil(signature)) {
       thrower('auth', 'tokenNotFound');
     }
-    const user = await this.get({ signatrue: signatrue })
+    const query = { signatrue: signature };
+    const user = await this.get({ query })
     if (_.isNil(user)) {
-      thrower('auth', 'error')
+      thrower('auth', 'authFail')
     }
     return user;
   }
   // 账号密码登录
   async signIn(data) {
-    const validation = new Validator({
+    const validation = new Validater({
       rules: {
         phone: 'required|string',
         password: 'required|string'
       }
     });
     const input = validation.validate(data);
-    const user = await this.get({ phone: input.phone });
+    const query = { phone: input.phone };
+    const user = await this.get({ query });
     if (_.isNil(user)) {
-      thrower('auth', 'error');
+      thrower('auth', 'accountError');
     }
     if (!user.comparePSW(input.password)) {
-      thrower('auth', 'error');
+      thrower('auth', 'accountError');
     }
-    const salt = new Date().getTime().toString();
-    const password = user.calculatePSW(input.password, salt);
-    await user.update({ password, salt });
-    return password;
+    return user.signature;
   }
   // 账号密码注册
-  async signUp(data) {
-    const validation = new Validator({
+  async signUp(data, opts = {}) {
+    const opt = this._init(opts);
+    const validation = new Validater({
       rules: {
         name: 'required|string',
         phone: 'required|string',
-        password: 'required|string'
+        password: 'required|string',
+        avatar: 'nullable|file'
       }
     });
     const input = validation.validate(data);
-    let user = await this.get({ phone: input.phone });
+    input.salt = new Date().getTime().toString();
+    input.password = this.model.calculatePSW(input.password, input.salt);
+    opt.where['phone'] = input.phone;
+    let user = await this.get(opt);
     if (!_.isNil(user)) {
-      thrower('auth', 'exists');
+      thrower('auth', 'existed');
     }
-    user = await this.model.create(input);
+    user = await this.model.create(input, { transaction: opt.transaction });
     return user;
   }
   async update(data, opts: any = {}) {
@@ -122,15 +131,18 @@ class UserBLL extends BaseBLL {
       transaction: opts.t || null,
       where: opts.query || {}
     }
-    const validation = new Validator({
+    const validation = new Validater({
       rules: {
         id: 'required|int',
-        level: 'nullable|enum:normal,annual,permenent',
         name: 'nullable|string',
-        phone: 'nullable|string'
+        phone: 'nullable|string',
+        avatar: 'nullable|file'
       }
     });
     const input = validation.validate(data);
+    if (!_.isNil(input.avatar)) {
+      //input.avatar = (await uploader);
+    }
     const user = await this.get(input.id);
     await user.update(input, opt);
     return user;

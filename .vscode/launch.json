@@ -11,7 +11,7 @@
       "env": {
         "DEBUG": "APP:*",
         "NODE_ENV": "dev",
-        "port": "3010"
+        "port": "3000"
       },
       "program": "${workspaceFolder}/dist/app.js"
     }

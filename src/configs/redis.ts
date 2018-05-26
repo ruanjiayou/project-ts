@@ -15,6 +15,6 @@ const redis = {
     client: "Xquark1234"
   }
 }
-export = {
+export {
   redis
 }

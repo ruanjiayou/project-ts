@@ -68,14 +68,16 @@ app.use(function (err, req, res, next) {
     // 验证错误
     res.validateError(err);
   } else if (err) {
-    res.status(500).send({ status: 'fail', message: `${err.message}` });
+    // 内部服务器错误
+    err.type = 'common';
+    err.module = 'error';
+    res.customError(err);
   } else {
-    res.status(404);
-    res.json({
-      status: 'fail',
-      path: `${req.originalUrl}`,
-      message: 'NOT FOUND'
-    });
+    // 404
+    err.type = 'common';
+    err.module = 'notFound';
+    err.message = req.originalUrl;
+    res.customError(err);
   }
 });
 

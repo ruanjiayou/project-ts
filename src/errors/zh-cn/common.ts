@@ -1,5 +1,5 @@
 export = {
-  "exists": {
+  "existed": {
     "code": 10200,
     "statusCode": 409,
     "message": "已存在"

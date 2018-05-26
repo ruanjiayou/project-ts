@@ -62,14 +62,20 @@ export default (sequelize, DataTypes) => {
       indexes: []
     });
   // class method
+  model.calculatePSW = function (password, salt) {
+    const hmac = crypto.createHmac('sha1', salt);
+    hmac.update(password.toUpperCase());
+    return hmac.digest('hex').toUpperCase();
+  }
   // 表间的关系
   model.associate = (models) => {
 
   }
   // 表的初始化数据
   model.seed = async () => {
+    // 密码是123456的md5加密
     const data = [
-      { name: '阮家友', phone: '18972376482', password: '123456', openid: 'o00of5cIW4aO89ZLRI10c7sBRK6A', token: 'e4323d96392c3de36dce89500fc6a8152985e7b8b3f546c9adc98d7245e2556b' }
+      { name: '阮家友', phone: '18972376482', password: 'E10ADC3949BA59ABBE56E057F20F883E', openid: 'o00of5cIW4aO89ZLRI10c7sBRK6A', token: 'e4323d96392c3de36dce89500fc6a8152985e7b8b3f546c9adc98d7245e2556b' }
     ];
     await model.bulkCreate(data);
   }
@@ -79,8 +85,5 @@ export default (sequelize, DataTypes) => {
     hmac.update(password);
     return this.password === hmac.digest('hex').toUpperCase();
   };
-  model.prototype.calculatePSW = function (password, salt) {
-    return password;
-  }
   return model;
 }

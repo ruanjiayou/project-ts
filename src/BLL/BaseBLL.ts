@@ -7,29 +7,61 @@ interface Opts {
   scopes?: any;
   attributes?: any;
 }
-
+/**
+ * 设计说明: 继承类尽可能不重写方法
+ * 1.采取opts的参数方式: 事物t/关联查询scopes/属性attributes/分页limit,offset/查询order,where
+ * 2.model和models成员变量
+ * 3.
+ * TODO:
+ * 1.transaction 等参数为null 有什么影响? findxxx()里多了scopes
+ * 2.多重事物
+ * 3.只是基础功能, 复杂的要重写
+ * 4.排序的字段是model中有的
+ */
 class BaseBLL {
   model: any;
   models = models;
   /**
    * 
-   * @param opts 对象处理转换[t][query][scopes][attributes]
+   * @param opts 对象处理转换[t][query:where,limit,offset,order][scopes][attributes]
    */
   _init(opts: Opts) {
     const opt: any = {};
     opt.transaction = _.isNil(opts.t) ? null : opts.t;
     opt.scopes = _.isNil(opts.scopes) ? [] : opts.scopes;
-    if (!_.isNil(opts.attributes)) {
+    // 指定要返回的字段数组,或指定不返还的字段exclude数组
+    if (_.isArray(opts.attributes)) {
       opt.attributes = opts.attributes;
-    }
-    // paging()生成的query有limit where offset order
-    if (!_.isNil(opts.query)) {
-      _.assign(opt, opts.query);
-      if (_.isNil(opt.where)) {
-        opt.where = {};
+      const exclude = [];
+      opt.attributes.forEach((attr: string) => {
+        if (/^[!]/.test(attr)) {
+          exclude.push(attr.substr(1));
+        }
+      });
+      if (exclude.length !== 0) {
+        opt.attributes = { exclude };
       }
     }
+    // id或paging()生成的query有limit where offset order
+    opt.where = {};
+    // order排序
+    if (_.isObject(opts.query)) {
+      _.assign(opt, opts.query);
+      if (_.isString(opt.order)) {
+        opt.order = [].push(opt.order);
+      }
+      if (_.isArray(opt.order)) {
+        opt.order = opt.order.map((item) => {
+          return item.split('-');
+        })
+      }
+    } else if (/^\d+$/.test(opts.query)) {
+      opt.where['id'] = opts.query;
+    }
     return opt;
+  }
+  getAttributes() {
+    return this.model.getAttributes();
   }
   // 只有t参数
   async create(data, t = {}) {
@@ -38,17 +70,10 @@ class BaseBLL {
   };
   /**
    * 删除数据
-   * @param o id或查询条件
-   * @param t 事物
    */
-  async destroy(o, t = {}) {
-    if (typeof o === 'number') {
-      return await this.model.destroy({ where: { id: o } }, t);
-    } else if (typeof o.destroy === 'function') {
-      return await o.destroy(t);
-    } else {
-      return await this.model.destroy(o, t);
-    }
+  async destroy(opts: Opts) {
+    const opt = this._init(opts);
+    return await this.model.destroy(opt);
   };
   /**
    * 修改记录
@@ -57,7 +82,10 @@ class BaseBLL {
    */
   async update(data, opts: Opts = {}) {
     const opt = this._init(opts);
-    const res = await this.model.updata(data, opt);
+    const res = await this.get(opts);
+    if (!_.isNil(res)) {
+      await res.update(data, opt);
+    }
     return res;
   };
   /**
@@ -80,16 +108,11 @@ class BaseBLL {
   };
   /**
    * 获取记录详情
-   * @param query where条件或id
-   * @param opts [t][scopes][attributes]
+   * @param opts [t][scopes][attributes][query]
    */
-  async get(query, opts: Opts = {}) {
+  async get(opts: Opts = {}) {
     const opt = this._init(opts);
-    if (typeof query === 'number' || /^\d+$/.test(query)) {
-      return await this.model.scope(opt.scopes).findById(query, opt);
-    } else {
-      return await this.model.scope(opt.scopes).findOne({ where: query }, opts);
-    }
+    return await this.model.scope(opt.scopes).findOne(opt);
   };
 }
 

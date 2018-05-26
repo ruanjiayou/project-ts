@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import * as Debug from 'debug';
 import * as errorsJson from '../errors';
+import { thrower } from './thrower';
 
 const SUCCESS = 'success', FAIL = 'fail';
 const debug = Debug('app:route-log');
@@ -74,8 +75,14 @@ const presenter = (params: any) => {
      * @param {object} result 
      */
     res.return = (result, params) => {
-      if (result && result.get) {
-        result = result.get({ plain: true });
+      if (!_.isNil(result)) {
+        if (_.isArray(result)) {
+          result = result.map(item => {
+            return item.get ? item.get({ plain: true }) : item;
+          })
+        } else if (result.get) {
+          result = result.get({ plain: true });
+        }
       }
       return res.json(_.assign({ status: result === null ? FAIL : SUCCESS }, { result: result }, params));
     };
@@ -92,12 +99,15 @@ const presenter = (params: any) => {
       try {
         // 语言包验证-模块验证 ['zh-cn']['common']['notFound]
         const errorJson = errorsJson[res.locale || d.defaultLang][err.module][err.type];
-        return res.status(errorJson.statusCode).json({
+        const errInfo: any = {
           status: FAIL,
           code: errorJson.code || 400,
-          message: errorJson.message,
-          detail: err.toString()
-        });
+          message: errorJson.message
+        };
+        if (err.message !== '') {
+          errInfo.detail = err.toString();
+        }
+        return res.status(errorJson.statusCode).json(errInfo);
       } catch (er) {
         res.status(500).json({ status: FAIL, code: 10230, message: '没找到定义的错误json文件', detail: er });
       }
@@ -108,6 +118,7 @@ const presenter = (params: any) => {
     res.validateError = (err) => {
       err.module = 'common';
       err.type = 'validation';
+      err.time = new Date();
       res.customError(err);
     };
     next();

@@ -2,11 +2,11 @@ import libs from '../libs';
 import * as _ from 'lodash';
 import * as mime from 'mime';
 import BaseBLL from './BaseBLL';
-import { uploader } from '../libs/uploader';
 import { auth as authCfg } from '../configs/auth';
+import { upload as uploadCfg } from '../configs/upload';
 
 const tokenCfg: any = authCfg;
-const { auth, thrower, Validater, wxHelper, Cos } = libs;
+const { auth, thrower, Validater, wxHelper, Cos, storer, uploader } = libs;
 
 class UserBLL extends BaseBLL {
   constructor() {
@@ -78,7 +78,7 @@ class UserBLL extends BaseBLL {
     if (_.isNil(signature)) {
       thrower('auth', 'tokenNotFound');
     }
-    const query = { signatrue: signature };
+    const query = { where: { signature: signature } };
     const user = await this.get({ query })
     if (_.isNil(user)) {
       thrower('auth', 'authFail')
@@ -105,28 +105,37 @@ class UserBLL extends BaseBLL {
     return user.signature;
   }
   // 账号密码注册
-  async signUp(data, opts = {}) {
+  async signUp(req, opts: any = {}) {
     const opt = this._init(opts);
     const validation = new Validater({
       rules: {
         name: 'required|string',
         phone: 'required|string',
-        password: 'required|string',
-        avatar: 'nullable|file'
+        password: 'required|string'
+      },
+      files: {
+        avatar: 'nullable|file:png,jpg,jpeg,gif'
       }
     });
-    const input = validation.validate(data);
+    const input = validation.validate(req.body);
     input.salt = new Date().getTime().toString();
     input.password = this.model.calculatePSW(input.password, input.salt);
-    opt.where['phone'] = input.phone;
-    let user = await this.get(opt);
+    const query = { where: { phone: input.phone } }
+    let user = await this.get({ query });
     if (!_.isNil(user)) {
       thrower('auth', 'existed');
     }
+    await validation.validateFile(req.files, async (files) => {
+      let avatar = files.avatar;
+      if (avatar && avatar.length !== 0) {
+        avatar = avatar[0];
+        input.avatar = storer('image/avatar', avatar);
+      }
+    });
     user = await this.model.create(input, { transaction: opt.transaction });
     return user;
   }
-  async update(data, opts: any = {}) {
+  async update(req, opts: any = {}) {
     const opt = {
       transaction: opts.t || null,
       where: opts.query || {}
@@ -135,15 +144,22 @@ class UserBLL extends BaseBLL {
       rules: {
         id: 'required|int',
         name: 'nullable|string',
-        phone: 'nullable|string',
-        avatar: 'nullable|file'
+        phone: 'nullable|string'
+      },
+      files: {
+        avatar: 'nullable|file:png,jpg,jpeg,gif'
       }
     });
-    const input = validation.validate(data);
-    if (!_.isNil(input.avatar)) {
-      //input.avatar = (await uploader);
-    }
-    const user = await this.get(input.id);
+    const input = validation.validate(req.body);
+    await validation.validateFile(req.files, async (files) => {
+      let avatar = files.avatar;
+      if (avatar && avatar.length !== 0) {
+        avatar = avatar[0];
+        input.avatar = storer('image/avatar', avatar);
+      }
+    });
+    const query = input.id;
+    const user = await this.get({ query });
     await user.update(input, opt);
     return user;
   }

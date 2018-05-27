@@ -1,5 +1,6 @@
 import * as multer from 'multer';
 import * as Debug from 'debug';
+import * as fs from 'fs';
 import * as path from 'path';
 import { upload } from '../configs/upload';
 
@@ -27,4 +28,65 @@ let uploader = multer({
   fileFilter: fileFilter //文件的类型, 过滤
 }).fields(upload.fields);
 
-export { uploader }
+/**
+ * 判断文件是否存在
+ * @param {string} path - 文件路径
+ * @return {boolean} - true 文件存在 false 文件不存在
+ */
+function isFileExists(path) {
+  return fs.existsSync(path) && !fs.lstatSync(path).isDirectory();
+}
+
+/**
+ * 创建文件夹
+ * @param {string|array} dir 文件夹
+ * @returns {boolean} 是否创建成功
+ */
+function mkdirs(dir) {
+  if (dir instanceof Array) {
+    dir = dir.join('/');
+  }
+  dir = dir.replace(/[/]+|[\\]+/g, '/');
+  try {
+    if (!fs.existsSync(dir)) {
+      var pathtmp = '';
+      dir = dir.split('/');
+      dir.forEach(function (dirname) {
+        pathtmp += pathtmp === '' ? dirname : '/' + dirname;
+        if (false === fs.existsSync(pathtmp)) {
+          fs.mkdirSync(pathtmp);
+        }
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * 生成16位长度的GUID
+ */
+function GUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  }).toUpperCase();
+};
+//TODO:用file signature检查文件头而不只是拓展名
+function storer(dir, file): string {
+  const folder = path.join(upload.localPath, dir);
+  const filename = '';
+  let key = '', fullpath = '', ext = path.extname(file.originalname).substring(1).toLowerCase();
+  mkdirs(`${upload.localPath}/${dir}`);
+  do {
+    key = GUID();
+    fullpath = `${upload.localPath}/${dir}/${key}.${ext}`;
+  } while (isFileExists(fullpath));
+  const oldpath = path.join(file.destination, file.filename);
+  fs.renameSync(oldpath, fullpath);
+  return `/${dir}/${key}.${ext}`;
+}
+
+export { uploader, storer }

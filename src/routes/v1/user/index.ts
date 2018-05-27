@@ -19,10 +19,9 @@ module.exports = {
   'PUT /v1/user/self': async (req, res, next) => {
     debug(`enter ${req.method} ${req.originalUrl} route`);
     try {
-      const data = _.assign(req.body, req.files);
-      const input = _.pick(req.body, ['name', 'avatar']);
-      const user = await userBLL.update(input);
-      return user;
+      req.body.id = res.locals.userAuth.id;
+      const user = await userBLL.update(req);
+      res.return(_.omit(user, ['password', 'salt', 'authority', 'signature', 'openid', 'createdAt', 'updatedAt']));
     } catch (err) {
       next(err);
     }
@@ -45,7 +44,7 @@ module.exports = {
     debug(`enter ${req.method} ${req.originalUrl} route`);
     try {
       const user = res.locals.userAuth.get({ plain: true });
-      res.return(_.omit(user, ['password', 'salt', 'authority', 'signature', 'openid']));
+      res.return(_.omit(user, ['password', 'salt', 'authority', 'signature', 'openid', 'createdAt', 'updatedAt']));
     } catch (err) {
       next(err);
     }

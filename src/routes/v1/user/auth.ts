@@ -23,7 +23,7 @@ module.exports = {
     debug(`enter ${req.method} ${req.originalUrl} route`);
     const data = _.assign(req.body, req.files);
     try {
-      const user = await userBLL.signUp(data);
+      const user = await userBLL.signUp(req);
       res.return(_.omit(user.get({ plain: true }), ['password', 'salt', 'createdAt', 'updatedAt']));
     } catch (err) {
       next(err);

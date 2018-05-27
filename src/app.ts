@@ -69,13 +69,13 @@ app.use(function (err, req, res, next) {
     res.validateError(err);
   } else if (err) {
     // 内部服务器错误
-    err.type = 'common';
-    err.module = 'error';
+    err.module = 'common';
+    err.type = 'unknown';
     res.customError(err);
   } else {
     // 404
-    err.type = 'common';
-    err.module = 'notFound';
+    err.module = 'common';
+    err.type = 'notFound';
     err.message = req.originalUrl;
     res.customError(err);
   }

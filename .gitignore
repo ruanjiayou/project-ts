@@ -3,4 +3,5 @@
 dist/
 node_modules/
 static/doc/
+static/image/
 test/

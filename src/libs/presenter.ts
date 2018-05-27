@@ -109,7 +109,7 @@ const presenter = (params: any) => {
         }
         return res.status(errorJson.statusCode).json(errInfo);
       } catch (er) {
-        res.status(500).json({ status: FAIL, code: 10230, message: '没找到定义的错误json文件', detail: er });
+        res.status(500).json({ status: FAIL, code: 10230, message: '没找到定义的错误json文件', detail: `${err.module} ${err.type}` });
       }
     };
     /**

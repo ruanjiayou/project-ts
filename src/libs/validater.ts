@@ -29,7 +29,10 @@ const messages = {
 function _str2arr(str, sperator = ',') {
   return str.split(sperator).map((item) => { return item.trim(); });
 }
-
+/**
+ * 基本字段验证用rules,文件验证用(async)files,自定义方法用methods,自定义提示用messages
+ * 默认lang=zh-cn
+ */
 class Validater {
   rules: any;
   files: any;
@@ -43,7 +46,8 @@ class Validater {
     this.files = o.files || {};
     this.messages = o.messages || messages[lang];
     this.methods = o.methods || {};
-    this.parse();
+    this.parse('rules');
+    this.parse('files');
   }
   error(o) {
     if (typeof o === 'object') {
@@ -58,36 +62,6 @@ class Validater {
     while ((m = reg.exec(str)) !== null) {
       let k = m[0], v = m[1], value = data[v] === undefined ? ' ?? ' : data[v];
       res = res.replace(k, value);
-    }
-    return res;
-  }
-  /**
-   * 过滤并验证参数(综合filter()和check()两个函数)
-   */
-  validate(data) {
-    let res = this.filter(data);
-    this.check(res);
-    return res;
-  }
-  validateFile(files, cb = null) {
-    const res = this.filter(this.files, 'files');
-    this.check(files);
-    return res;
-  }
-  /**
-   * 按rules的字段,过滤额外的字段
-   */
-  filter(data, type = 'rules') {
-    let res = {};
-    for (let k in this[type]) {
-      let rule = this[type][k];
-      if (!_.isUndefined(data[k])) {
-        if (rule.boolean) {
-          res[k] = data[k] && data[k] !== 'false' ? true : false;
-        } else {
-          res[k] = data[k];
-        }
-      }
     }
     return res;
   }
@@ -183,41 +157,61 @@ class Validater {
   /**
    * required|int|min:100|max:200  --> required: true, int: true, range: [100, 200)
    */
-  parse() {
-    let ifArr = [];
-    for (let k in this.rules) {
-      let str = this.rules[k];
-      this.rules[k] = this._str2rule(str);
-    }
-    for (let k in this.files) {
-      let str = this.files[k];
-      this.files[k] = this._str2rule(str);
+  parse(type = 'rules') {
+    const ifArr = [], types = this[type];
+    for (let k in types) {
+      let str = types[k];
+      types[k] = this._str2rule(str);
     }
     return this;
   }
   /**
+   * 过滤额外的字段rules/files
+   */
+  filter(data, type = 'rules') {
+    const res = {}, types = this[type];
+    for (let k in types) {
+      let rule = types[k];
+      if (!_.isUndefined(data[k])) {
+        res[k] = data[k];
+        if (rule.boolean) {
+          res[k] = data[k] === '0' || data[k] === 'false' ? false : true;
+        }
+      }
+    }
+    return res;
+  }
+  /**
+   * required: 必填,没有则代表可为空,nullable代表值可以为null
    * k 字段
    * v 值
    * kk 验证规则
    */
   check(data, type = 'rules') {
-    for (let k in this['rules']) {
-      let v = data[k], rule = this['rules'][k];
+    const types = this[type];
+    for (let k in types) {
+      let v = data[k], rule = types[k];
       const detailInfo = { field: k, data: v, rule: '', value: '' };
-      // if规则和nullable的区别:nullable,data中没字段就不验证;if,为false时会主动删除data中的字段
+      // 1.if规则和nullable的区别:nullable,data中没字段就不验证;if,为false时会主动删除data中的字段
       // if的顺序不能顺便
       if (rule.if && false === rule.methods[rule.if](v)) {
         delete data[k];
         continue;
       }
-      if (_.isUndefined(v) && rule.nullable) {
-        delete data[k];
-        continue;
-      }
+      // 2.必填, 为undefined则报错
       if (rule.required && _.isUndefined(v)) {
         detailInfo.rule = 'required';
         this.error(detailInfo);
       }
+      // 3.不要求必填, 为undefined则删除字段继续, nullable则保留继续
+      if (rule.nullable && _.isNull(v)) {
+        continue;
+      }
+      if (_.isNil(v)) {
+        delete data[k];
+        continue;
+      }
+      // 4.整数(可负)
       if (rule.int) {
         if (!this.isInt(v)) {
           detailInfo.rule = 'int';
@@ -225,6 +219,7 @@ class Validater {
         }
         v = parseInt(v);
       }
+      // 5.浮点数
       if (rule.float) {
         if (!this.isFloat(v)) {
           detailInfo.rule = 'float';
@@ -232,6 +227,7 @@ class Validater {
         }
         v = parseFloat(v);
       }
+      // 6.对数值的范围验证
       if (rule.range) {
         if (v < rule.range.min) {
           detailInfo.rule = 'min';
@@ -244,6 +240,7 @@ class Validater {
           this.error(detailInfo);
         }
       }
+      // 7.对字符串的长度验证
       if (rule.length) {
         if (v.length < rule.length.minlength) {
           detailInfo.rule = 'minlength';
@@ -256,21 +253,25 @@ class Validater {
           this.error(detailInfo);
         }
       }
+      // 8.邮箱验证
       if (rule.email && !this.isEmail(v)) {
         detailInfo.rule = 'email';
         this.error(detailInfo);
       }
+      // 9.URL地址验证
       if (rule.url && !this.isUrl(v)) {
         detailInfo.rule = 'url';
         this.error(detailInfo);
       }
+      // 10.文件验证
       if (rule.file) {
         let len = v.length;
-        // 验证数量: 要么nullable要么至少一张图
-        if (len === 0 && _.isNil(rule.nullable)) {
-          detailInfo.rule = 'required';
-          this.error(detailInfo);
-        }
+        // 前面有required和nullable验证 为空不会到这里
+        // // 验证数量: 要么nullable要么至少一张图
+        // if (len === 0 && _.isNil(rule.nullable)) {
+        //   detailInfo.rule = 'required';
+        //   this.error(detailInfo);
+        // }
         if (rule.length && len < rule.length.minlength) {
           detailInfo.rule = 'minlength';
         }
@@ -279,9 +280,12 @@ class Validater {
         }
         // 验证类型/大小
         for (let i = 0; i < v.length; i++) {
-          const file = v[0];
+          const file = v[i];
+          if (_.isString(file)) {
+            continue;
+          }
           const states = fs.statSync(file.path);
-          const ext = path.ext(file.originalname).toLowerCase();
+          const ext = path.extname(file.originalname).substring(1).toLowerCase();
           file.ext = ext;
           if (rule.file.indexOf(ext) === -1) {
             detailInfo.rule = 'file';
@@ -297,15 +301,18 @@ class Validater {
           }
         }
       }
+      // 11.枚举验证
       if (rule.enum && -1 === rule.enum.indexOf(v)) {
         detailInfo.rule = 'enum';
         detailInfo.value = rule.enum.join(',');
         this.error(detailInfo);
       }
-      if (rule.boolean && typeof data[k] !== 'boolean') {
-        detailInfo.rule = 'boolean';
-        this.error(detailInfo);
-      }
+      // 12.布尔验证 filter时已经boolean化了
+      // if (rule.boolean && typeof data[k] !== 'boolean') {
+      //   detailInfo.rule = 'boolean';
+      //   this.error(detailInfo);
+      // }
+      // 13.日期时间验证
       if (rule.date) {
         if (!this.isDate(v)) {
           detailInfo.rule = 'date';
@@ -313,15 +320,18 @@ class Validater {
         }
         v = moment(v).toISOString()
       }
+      // 14.日期验证
       if (rule.dateonly && !this.isDateOnly(v)) {
         detailInfo.rule = 'dateonly';
         this.error(detailInfo);
       }
+      // 15.时间验证
       if (rule.timeonly && !this.isTimeOnly(v)) {
         detailInfo.rule = 'timeonly';
         this.error(detailInfo);
       }
       data[k] = v;
+      // 16.方法验证
       for (let f in rule.methods) {
         let fn = rule.methods[f];
         if (!fn.call(this, v)) {
@@ -337,7 +347,22 @@ class Validater {
     }// for end
     return data;
   }
-
+  /**
+   * 过滤并验证参数(综合filter()和check()两个函数)
+   */
+  validate(data) {
+    let res = this.filter(data);
+    this.check(res);
+    return res;
+  }
+  async validateFile(data, cb = null) {
+    const res = this.filter(data, 'files');
+    this.check(res, 'files');
+    if (cb) {
+      await cb(res);
+    }
+    return res;
+  }
   isUrl(v) {
     return /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(v);
   }
@@ -351,7 +376,7 @@ class Validater {
     return moment(v, 'HH:mm:ss', true).isValid();
   }
   isInt(v) {
-    return /^\d+$/.test(v);
+    return /^[-+]?\d+$/.test(v);
   }
   isFloat(v) {
     return /^[-+]?(\d+[.])?\d+$/.test(v);

@@ -73,15 +73,22 @@ app.use(function (err, req, res, next) {
     err.type = 'unknown';
     res.customError(err);
   } else {
-    // 404
-    err.module = 'common';
-    err.type = 'notFound';
-    err.message = req.originalUrl;
-    res.customError(err);
+    // 404竟然不会进这里
+    // err.module = 'common';
+    // err.type = 'notFound';
+    // err.message = req.originalUrl;
+    // res.customError(err);
   }
 });
 
-// 8.宕机
+// 8.404
+app.use(function (req, res, next) {
+  if (!res.headersSent) {
+    res.status(404).json({ status: 'false', code: -1, message: '接口不存在' });
+  }
+});
+
+// 9.宕机
 process.on('uncaughtException', (err) => {
   errorLogger.error(`uncaughtException ${err.toString()}`);
   console.error(err, 'uncaughtException');

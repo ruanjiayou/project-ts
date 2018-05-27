@@ -27,7 +27,5 @@ TODO:
 - mongodb存小说数据
 - 数据静态化
 - redis缓存场景:少修改 数据多
-- user的登录注册流程,个人信息查询修改
-- validater 同时验证文件和字段
 - user sign-in时的令牌问题 以及过期时间
 ```

@@ -7,6 +7,7 @@
     "noImplicitAny": false,
     "allowJs": true,
     "sourceMap": true,
+    "skipDefaultLibCheck": true,
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {

@@ -56,7 +56,7 @@ const presenter = (params: any) => {
      * @param {object} query 查询条件中的limit和page
      */
     res.paging = (result, query) => {
-      let rows = result ? result.rows.map(function (item) { return item.get({ plain: true }); }) : [];
+      let rows = result ? result.rows.map(function (item) { return item.toJSON(); }) : [];
       let total = result ? result.count : 0;
       return res.json({
         status: SUCCESS,
@@ -78,10 +78,10 @@ const presenter = (params: any) => {
       if (!_.isNil(result)) {
         if (_.isArray(result)) {
           result = result.map(item => {
-            return item.get ? item.get({ plain: true }) : item;
+            return item.toJSON();
           })
-        } else if (result.get) {
-          result = result.get({ plain: true });
+        } else {
+          result = result.toJSON();
         }
       }
       return res.json(_.assign({ status: result === null ? FAIL : SUCCESS }, { result: result }, params));

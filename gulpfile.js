@@ -144,3 +144,5 @@ gulp.task('online:test', ['dist', 'doc'], () => {
 gulp.task('online:production', ['dist', 'doc'], () => {
   onlinePublish('production');
 });
+
+gulp.task('default', ['local:dev']);

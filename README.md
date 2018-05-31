@@ -1,7 +1,7 @@
-### 安装开发流程(configs下的system文件没有上传)
+### 安装开发流程
 ```
 1.npm install
-2.gulp dev
+2.gulp 或者 gulp local:dev
 ```
 ### API测试流程
 ```
@@ -13,7 +13,7 @@
 - 进入测试目录 cd ~/project-name
 - 拉取dev分支最新代码 git pull
 - *npm install
-- 刷表 node bin/migrate.js
+- 刷表 node dist/bin/migrate.js
 - ~~启动创建课程任务 nodemon dist/tasks/test.js(注意修改环境变量)~~
 - 启动测试环境 gulp online:test
 #### 每次发布测试前的重要修改记录

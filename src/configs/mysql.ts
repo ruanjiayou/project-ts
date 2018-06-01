@@ -14,7 +14,7 @@ const mysql = {
   },
   test: {
     "username": "root",
-    "password": "ouB8LyxL",
+    "password": "",
     "host": "127.0.0.1",
     "port": 3306,
     "dialect": "mysql",
@@ -27,7 +27,7 @@ const mysql = {
   },
   production: {
     "username": "root",
-    "password": "ouB8LyxL",
+    "password": "",
     "host": "127.0.0.1",
     "port": 3306,
     "dialect": "mysql",

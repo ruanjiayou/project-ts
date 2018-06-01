@@ -2,6 +2,10 @@
 ```
 1.npm install
 2.gulp 或者 gulp local:dev
+其他:
+  修改package.json的基本属性
+  创建数据库
+  修改configs文件夹的配置
 ```
 ### API测试流程
 ```

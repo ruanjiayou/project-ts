@@ -5,7 +5,7 @@ const email = {
   port: 465,// SMTP端口
   auth: {
     user: '1439120442@qq.com',
-    pass: 'jfvfiwoxeelcgich'// 授权码
+    pass: ''// 授权码
   }
 };
 

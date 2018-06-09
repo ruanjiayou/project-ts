@@ -28,8 +28,8 @@ module.exports = {
   'POST /v1/auth/user/sign-in': async (req, res, next) => {
     debug(`enter ${req.method} ${req.originalUrl} route`);
     try {
-      const signature = await userBLL.signIn(req.body);
-      res.return({ signature });
+      const token = await userBLL.signIn(req.body);
+      res.return({ token });
     } catch (err) {
       next(err);
     }

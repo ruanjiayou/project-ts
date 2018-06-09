@@ -70,7 +70,6 @@ class UserBLL extends BaseBLL {
   // 密码登录部分
   // 验证
   async sign(req) {
-    const key = tokenCfg.signKey;
     const data = auth.decode(req);
     const where = { token: data.token };
     const user = await this.get({ where })
@@ -101,7 +100,8 @@ class UserBLL extends BaseBLL {
       role: 'user',
       id: user.id,
       token
-    })
+    });
+    await user.update({ token });
     return authorization;
   }
   // 账号密码注册

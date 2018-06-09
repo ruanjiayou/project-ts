@@ -82,7 +82,7 @@ export default (sequelize, DataTypes) => {
   model.prototype.comparePSW = function (password) {
     const hmac = crypto.createHmac('sha1', this.salt);
     hmac.update(password);
-    return this.password === hmac.digest('hex').toUpperCase();
+    return this.password === hmac.digest('hex');
   };
   model.prototype.toJSON = function () {
     const res = this.dataValues;

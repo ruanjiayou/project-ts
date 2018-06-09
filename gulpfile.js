@@ -71,7 +71,7 @@ var localPublish = (mode) => {
 // 线上发布(test/production两种)
 var onlinePublish = (mode) => {
   createModeConfig(mode);
-  const env = require('./dist/configs/env')[mode];
+  const env = require('./dist/configs/env').env[mode];
   const sys = require('./dist/configs/system').system;
   var pmList = () => {
     return new Promise((resolve, reject) => {

@@ -40,7 +40,7 @@ module.exports = {
     try {
       req.body.id = res.locals.userAuth.id;
       const user = await userBLL.update(req);
-      res.return(_.omit(user.get({ plain: true }), ['password', 'salt', 'authority', 'signature', 'openid', 'createdAt', 'updatedAt']));
+      res.return(_.omit(user, ['password', 'salt', 'token', 'refresh_token', 'openid', 'createdAt', 'updatedAt']));
     } catch (err) {
       next(err);
     }
@@ -65,7 +65,7 @@ module.exports = {
     debug(`enter ${req.method} ${req.originalUrl} route`);
     try {
       const user = res.locals.userAuth.get({ plain: true });
-      res.return(_.omit(user, ['password', 'salt', 'authority', 'signature', 'openid', 'createdAt', 'updatedAt']));
+      res.return(_.omit(user, ['password', 'salt', 'token', 'refresh_token', 'openid', 'createdAt', 'updatedAt']));
     } catch (err) {
       next(err);
     }

@@ -1,7 +1,7 @@
 {
-  "name": "qingsongyibai-server",
+  "name": "api-server-template",
   "version": "1.0.0",
-  "description": "轻松易百服务器API",
+  "description": "api服务器模板",
   "main": "app.js",
   "bin": {
     "qingsongyibai-server": "migrate.js"
@@ -17,9 +17,9 @@
   "apidoc": {
     "name": "qingsongyibai",
     "version": "0.1.0",
-    "description": "轻松易百API文档",
-    "title": "轻松易百",
-    "url": "http://127.0.0.1:3010/v1"
+    "description": "api文档",
+    "title": "api文档",
+    "url": "http://127.0.0.1:3000"
   },
   "dependencies": {
     "async": "^2.2.0",

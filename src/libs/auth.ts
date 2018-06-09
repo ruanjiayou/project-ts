@@ -56,6 +56,12 @@ import configs from '../configs';
 
 const authConfig = configs.auth;
 /**
+ * 安全问题:
+ * 1.XSS 攻击 src中盗取cookie: 设置cookie 为httponly 或 使用库过滤
+ * 2.重放攻击 token被窃取: userId  jti一次性或2秒就过期
+ * 3.中间人攻击 MITM: 如WiFi被黑 通信被监控 用https咯
+ */
+/**
  * 采用sha1 + salt
  */
 function encrypt(str, salt) {
@@ -65,26 +71,21 @@ function encrypt(str, salt) {
 }
 /**
  * jwt数据加密
- * @param {object} data 载荷
+ * @param {object} data 载荷 token/role/id
  */
 function encode(data) {
   const token = jwt.sign(data, authConfig.secret, { expiresIn: authConfig.exp });
-  return ({
-    type: authConfig.type,
-    token: token
-  });
+  return (token);
 }
 /**
- * 有的header区分大小写,有的不区分
- * 返回Token json
- * 一定要catch这个函数
+ * @return object
  */
 function decode(req) {
   let key = authConfig.key;
   let token = req.headers[key] || (req.body && req.body[key]) || (req.query && req.query[key]);
   if (token) {
     try {
-      token = jwt.verify(token.split(' ')[1], authConfig.secret);
+      token = jwt.verify(token, authConfig.secret);
     } catch (err) {
       thrower('auth', 'tokenExpired');
     }

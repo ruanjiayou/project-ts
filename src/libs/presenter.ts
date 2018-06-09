@@ -5,6 +5,48 @@ import { thrower } from './thrower';
 
 const SUCCESS = 'success', FAIL = 'fail';
 const debug = Debug('app:route-log');
+
+/**
+ * 根据分页条件和查询结果构建分页信息
+ * @param {object} result findAndCountAll()或findAll()返回的结果
+ * @param {object} query 查询条件中的limit和page, req.paging中得到
+ * @returns status/result/paging
+ */
+const prePaging = (result, query) => {
+  let rows = result ? result.rows.map(function (item) { return item.toJSON ? item.toJSON() : item; }) : [];
+  let total = result ? result.count : 0;
+  return {
+    status: SUCCESS,
+    result: rows,
+    paging: {
+      page: query.page,
+      pages: Math.ceil(total / query.limit),
+      limit: query.limit,
+      count: rows.length,
+      total: total
+    }
+  };
+};
+
+/**
+ * 返回json格式的查询结果
+ * @param {object} result 记录对象
+ * @param {object} [params] 可选参数
+ * @returns status/result
+ */
+const preReturn = (result, params) => {
+  if (!_.isNil(result)) {
+    if (_.isArray(result)) {
+      result = result.map(item => {
+        return item.toJSON ? item.toJSON() : item;
+      })
+    } else {
+      result = result.toJSON ? result.toJSON() : result;
+    }
+  }
+  return _.assign({ status: result === null ? FAIL : SUCCESS }, { result }, params)
+};
+
 const presenter = (params: any) => {
   // 默认设置 分页传参字段/错误提示文件夹
   let d = _.assign({
@@ -21,6 +63,7 @@ const presenter = (params: any) => {
     }
     /**
      * 查询前计算limit和offset, 将req.query分为 hql和query
+     * @returns page/limit/offset/where/search/order
      */
     req.paging = (cb) => {
       let hql: any = { where: {} };
@@ -36,8 +79,9 @@ const presenter = (params: any) => {
       delete query[d.order];
       delete query[d.search];
 
-      hql.limit = _.isEmpty(limit) ? 20 : limit;
-      hql.offset = _.isEmpty(page) ? 0 : (page - 1) * limit;
+      hql.page = page || 1;
+      hql.limit = limit || 20;
+      hql.offset = (hql.page - 1) * hql.limit;
 
       if (!_.isEmpty(order)) {
         hql.order = order;
@@ -50,41 +94,11 @@ const presenter = (params: any) => {
       }
       return hql;
     };
-    /**
-     * 根据分页条件和查询结果构建分页信息
-     * @param {object} result findAndCountAll()返回的结果
-     * @param {object} query 查询条件中的limit和page
-     */
     res.paging = (result, query) => {
-      let rows = result ? result.rows.map(function (item) { return item.toJSON(); }) : [];
-      let total = result ? result.count : 0;
-      return res.json({
-        status: SUCCESS,
-        result: rows,
-        paging: {
-          page: query.page,
-          pages: Math.ceil(total / query.limit),
-          limit: query.limit,
-          count: rows.length,
-          total: total
-        }
-      });
+      res.json(prePaging(result, query));
     };
-    /**
-     * 返回json格式的查询结果
-     * @param {object} result 
-     */
     res.return = (result, params) => {
-      if (!_.isNil(result)) {
-        if (_.isArray(result)) {
-          result = result.map(item => {
-            return item.toJSON();
-          })
-        } else {
-          result = result.toJSON();
-        }
-      }
-      return res.json(_.assign({ status: result === null ? FAIL : SUCCESS }, { result: result }, params));
+      return res.json(preReturn(result, params));
     };
     res.success = () => {
       res.json({ status: SUCCESS });

@@ -12,16 +12,13 @@ class UserBLL extends BaseBLL {
   constructor() {
     super();
     this.model = this.models.User;
+    this.attributes = this.getAttributes();
   }
   // 微信登录部分
   async auth(req) {
-    const key = tokenCfg.authKey;
-    const authority = req.headers[key] || (req.body && req.body[key]) || (req.query && req.query[key]);
-    if (_.isNil(authority)) {
-      thrower('auth', 'tokenNotFound');
-    }
-    const query = { authority: authority };
-    const user: any = await this.get({ query });
+    const data = auth.decode(req);
+    const where = { token: data.token };
+    const user: any = await this.get({ where });
     if (_.isNil(user)) {
       thrower('auth', 'authFail');
     }
@@ -40,13 +37,13 @@ class UserBLL extends BaseBLL {
     });
     const input = validation.validate(data);
     const wxInfo = await wxHelper.getWxOpenId(tokenCfg.wxAppId, tokenCfg.wxSecret, input.code);
-    const query = { openid: wxInfo.openid };
-    const user = await this.get({ query });
+    const where = { openid: wxInfo.openid };
+    const user = await this.get({ where });
     if (_.isNil(user)) {
       thrower('auth', 'error');
     }
     const wxToken = wxHelper.generateToken(wxInfo.openid);
-    await user.update({ authority: wxToken });
+    await user.update({ token: wxToken });
     return wxToken;
   }
   async authUp(data) {
@@ -59,11 +56,11 @@ class UserBLL extends BaseBLL {
     });
     const input = validation.validate(data);
     const wxInfo = await wxHelper.getWxOpenId(tokenCfg.wxAppId, tokenCfg.wxSecret, input.code);
-    const query = { openid: wxInfo.openid };
-    let user = await this.get({ query });
+    const where = { openid: wxInfo.openid };
+    let user = await this.get({ where });
     if (_.isNil(user)) {
       const wxToken = wxHelper.generateToken(wxInfo.openid);
-      input.authority = wxToken;
+      input.token = wxToken;
       user = await this.model.create(input);
     } else {
       thrower('auth', 'exists');
@@ -74,12 +71,9 @@ class UserBLL extends BaseBLL {
   // 验证
   async sign(req) {
     const key = tokenCfg.signKey;
-    const signature = req.headers[key] || (req.body && req.body[key]) || (req.query && req.query[key]);
-    if (_.isNil(signature)) {
-      thrower('auth', 'tokenNotFound');
-    }
-    const query = { where: { signature: signature } };
-    const user = await this.get({ query })
+    const data = auth.decode(req);
+    const where = { token: data.token };
+    const user = await this.get({ where })
     if (_.isNil(user)) {
       thrower('auth', 'authFail')
     }
@@ -94,15 +88,21 @@ class UserBLL extends BaseBLL {
       }
     });
     const input = validation.validate(data);
-    const query = { phone: input.phone };
-    const user = await this.get({ query });
+    const where = { phone: input.phone };
+    const user = await this.get({ where });
     if (_.isNil(user)) {
       thrower('auth', 'accountError');
     }
     if (!user.comparePSW(input.password)) {
       thrower('auth', 'accountError');
     }
-    return user.signature;
+    const token = new Date().getTime();
+    const authorization = auth.encode({
+      role: 'user',
+      id: user.id,
+      token
+    })
+    return authorization;
   }
   // 账号密码注册
   async signUp(req, opts: any = {}) {
@@ -120,8 +120,8 @@ class UserBLL extends BaseBLL {
     const input = validation.validate(req.body);
     input.salt = new Date().getTime().toString();
     input.password = this.model.calculatePSW(input.password, input.salt);
-    const query = { where: { phone: input.phone } }
-    let user = await this.get({ query });
+    const where = { phone: input.phone };
+    let user = await this.get({ where });
     if (!_.isNil(user)) {
       thrower('auth', 'existed');
     }
@@ -136,10 +136,7 @@ class UserBLL extends BaseBLL {
     return user;
   }
   async update(req, opts: any = {}) {
-    const opt = {
-      transaction: opts.t || null,
-      where: opts.query || {}
-    }
+    const opt = this._init(opts);
     const validation = new Validater({
       rules: {
         id: 'required|int',

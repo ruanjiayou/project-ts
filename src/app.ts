@@ -2,6 +2,8 @@ import * as express from "express";
 import * as compression from "compression";
 import * as bodyParser from "body-parser";
 import * as cors from "cors";
+import * as ejs from "ejs";
+import * as path from "path";
 // import * as session from "express-session";
 import * as redis from "redis";
 import router from "./router";
@@ -14,6 +16,16 @@ const errorLogger = logger('error');
 /**
  * Express configuration.
  */
+// 设置模板目录
+app.set('views', path.join(__dirname, 'views'));
+// 设置模板的后缀类型为ejs
+//Server.set('view engine', 'ejs');
+//设置模板的后缀类型
+app.set('view engine', 'html');
+//设置render时自动添加的后缀
+app.engine('.html', ejs.__express);
+//只能设置分割符 新版本没有了
+//ejs.delimiter = '$';
 app.set("port", process.env.port || 3000);
 app.use(express.static("static"));
 app.use(compression());

@@ -1,9 +1,16 @@
 import * as _ from 'lodash';
 import models from '../models';
-
+/**
+ * t: transaction
+ * query: limit/offset/where/order/search
+ * where: 同query的where
+ * scopes: include数组
+ * attributes: include或exclude数组
+ */
 interface Opts {
   t?: any;
   query?: any;
+  where?: any;
   scopes?: any;
   attributes?: any;
 }
@@ -21,21 +28,34 @@ interface Opts {
 class BaseBLL {
   model: any;
   models = models;
+  attributes = [];
   /**
    * 
-   * @param opts 对象处理转换[t][query:where,limit,offset,order][scopes][attributes]
+   * @param opts 对象处理转换[t][where][query:where,limit,offset,order][scopes][attributes]
    */
   _init(opts: Opts) {
     const opt: any = {};
+    // 允许多次调用_init()
+    opts = _.cloneDeep(opts);
     opt.transaction = _.isNil(opts.t) ? null : opts.t;
-    opt.scopes = _.isNil(opts.scopes) ? [] : opts.scopes;
+    opt.scopes = _.isArray(opts.scopes) ? opts.scopes : [];
+    opt.where = _.isNil(opts.where) ? {} : opts.where;
+    if (_.isNil(opts.where)) {
+      opt.where = {};
+    } else if (_.isObject(opts.where)) {
+      opt.where = opts.where;
+    } else if (/^\d+$/.test(opts.where)) {
+      opt.where = { id: opts.where };
+    }
     // 指定要返回的字段数组,或指定不返还的字段exclude数组
     if (_.isArray(opts.attributes)) {
-      opt.attributes = opts.attributes;
+      opt.attributes = [];
       const exclude = [];
-      opt.attributes.forEach((attr: string) => {
-        if (/^[!]/.test(attr)) {
+      opts.attributes.forEach((attr) => {
+        if (/^[!]/.test(attr) && this.attributes.indexOf(attr.substr(1)) !== -1) {
           exclude.push(attr.substr(1));
+        } else if (this.attributes.indexOf(attr) !== -1) {
+          opt.attributes.push(attr);
         }
       });
       if (exclude.length !== 0) {
@@ -43,23 +63,39 @@ class BaseBLL {
       }
     }
     // id或paging()生成的query有limit where offset order
-    opt.where = {};
     // order排序
     if (_.isObject(opts.query)) {
+      // req.paging()生成的多余的
+      delete opts.query.page;
+      // 合并内层和外层的where
+      if (_.isObject(opts.query.where)) {
+        _.assign(opt.where, opts.query.where);
+        delete opts.query.where;
+      }
+      // 指定列
       _.assign(opt, opts.query);
-      if (_.isString(opt.order)) {
-        opt.order = [].push(opt.order);
+      if (_.isString(opts.query.order)) {
+        opts.query.order = [].push(opts.query.order);
       }
-      if (_.isArray(opt.order)) {
-        opt.order = opt.order.map((item) => {
-          return item.split('-');
-        })
+      if (_.isArray(opts.query.order)) {
+        opt.order = [];
+        opts.query.order.forEach((item) => {
+          if (_.isString(item)) {
+            const order = item.split('-');
+            if (this.attributes.indexOf(order[0]) !== -1 && ['DESC', 'ASC'].indexOf(order[1]) !== -1) {
+              opt.order.push(order);
+            }
+          } else if (_.isArray(item)) {
+            opt.order.push(item);
+          }
+        });
       }
-    } else if (/^\d+$/.test(opts.query)) {
-      opt.where['id'] = opts.query;
     }
     return opt;
   }
+  /**
+   * 获取model的属性数组
+   */
   getAttributes() {
     return this.model.getAttributes();
   }
@@ -72,13 +108,13 @@ class BaseBLL {
    * 删除数据
    */
   async destroy(opts: Opts) {
-    const opt = this._init(opts);
+    const opt = _.pick(this._init(opts), ['where', 'transaction']);
     return await this.model.destroy(opt);
   };
   /**
    * 修改记录
    * @param data 数据
-   * @param opts [t][query]
+   * @param opts [t][query][scopes][attributes]
    */
   async update(data, opts: Opts = {}) {
     const opt = this._init(opts);

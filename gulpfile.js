@@ -1,9 +1,9 @@
 const gulp = require('gulp');
 const nodemon = require('gulp-nodemon');
 const sourcemaps = require('gulp-sourcemaps');
+const clean = require('gulp-clean');
 const ts = require('gulp-typescript');
 const fs = require('fs');
-const clean = require('gulp-clean');
 const apidoc = require('gulp-apidoc');
 const tsProject = ts.createProject('tsconfig.json');
 const pm2 = require('pm2');
@@ -14,8 +14,18 @@ var createModeConfig = function (mode) {
   fs.writeFileSync(path.join(__dirname, 'dist/node-env-mode.json'), JSON.stringify({ mode: mode }));
 };
 
-gulp.task('dist', ['clean'], () => {
-  return new Promise((resolve) => {
+gulp.task('clean', () => {
+  return gulp
+    .src('./dist', { read: false })
+    .pipe(clean());
+});
+
+gulp.task('doc', (done) => {
+  apidoc({ src: 'src/routes', dest: 'static/doc', debug: true }, done);
+});
+
+gulp.task('dist', ['clean'], async () => {
+  await new Promise((resolve) => {
     tsProject.src()
       .pipe(sourcemaps.init())
       .pipe(tsProject()).js
@@ -29,19 +39,9 @@ gulp.task('dist', ['clean'], () => {
         createModeConfig('dev');
         return resolve();
       });
-  }).catch((err) => {
-    return console.error(err);
   });
-});
-
-gulp.task('clean', () => {
-  return gulp
-    .src('./dist', { read: false })
-    .pipe(clean());
-});
-
-gulp.task('doc', (done) => {
-  apidoc({ src: 'src/routes', dest: 'static/doc', debug: true }, done);
+  gulp.src('src/views/**/*')
+    .pipe(gulp.dest('dist/views'));
 });
 
 // 本地发布(dev/test两种)
@@ -51,7 +51,7 @@ var localPublish = (mode) => {
   var stream = nodemon({
     script: 'dist/app.js',
     watch: ['src'],
-    ext: 'ts json',
+    ext: 'ts json html',
     tasks: ['dist'],
     delay: '2500',
     env: env

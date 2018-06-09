@@ -17,15 +17,14 @@ export default (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    authority: {
+    token: {
       type: DataTypes.STRING,
       allowNull: true,
-      comments: '就是openid的sha256?'
+      comments: 'authority & signature'
     },
-    signature: {
+    refresh_token: {
       type: DataTypes.STRING,
-      allowNull: true,
-      comments: 'jwt'
+      allowNull: true
     },
     phone: {
       type: DataTypes.STRING,
@@ -84,6 +83,10 @@ export default (sequelize, DataTypes) => {
     const hmac = crypto.createHmac('sha1', this.salt);
     hmac.update(password);
     return this.password === hmac.digest('hex').toUpperCase();
+  };
+  model.prototype.toJSON = function () {
+    const res = this.dataValues;
+    return res;
   };
   return model;
 }

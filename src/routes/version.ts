@@ -1,10 +1,7 @@
-import libs from '../libs';
-import configs from '../configs';
-import * as Debug from 'debug';
+import { thrower } from '../libs';
+import { version } from '../configs';
 
-const debug = Debug('APP:VERSION_ROUTE');
-const thrower = libs.thrower;
-const version = configs.version;
+const debug = require('debug')('APP:VERSION_ROUTE');
 
 export = {
   'use /:version(v[0-9]+)/*': async (req, res, next) => {

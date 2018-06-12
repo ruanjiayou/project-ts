@@ -158,4 +158,4 @@ const shttp = {
   }
 };
 
-export { shttp };
+export { shttp }

@@ -1,4 +1,4 @@
-const logger = {
+const log = {
   appenders: {
     console: {
       type: 'console'
@@ -23,5 +23,5 @@ const logger = {
   }
 }
 export {
-  logger
+  log
 }

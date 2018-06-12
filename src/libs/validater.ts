@@ -33,7 +33,7 @@ function _str2arr(str, sperator = ',') {
  * 基本字段验证用rules,文件验证用(async)files,自定义方法用methods,自定义提示用messages
  * 默认lang=zh-cn
  */
-class Validater {
+class validater {
   rules: any;
   files: any;
   messages: any;
@@ -51,7 +51,7 @@ class Validater {
   }
   error(o) {
     if (typeof o === 'object') {
-      o = Validater.compile(this.messages[o.rule], o);
+      o = validater.compile(this.messages[o.rule], o);
     }
     let err: any = new Error(o);
     err.validate = true;
@@ -350,7 +350,7 @@ class Validater {
   /**
    * 过滤并验证参数(综合filter()和check()两个函数)
    */
-  validate(data) {
+  validate(data): any {
     let res = this.filter(data);
     this.check(res);
     return res;
@@ -488,4 +488,6 @@ class Validater {
   }
 }
 
-export { Validater }
+export {
+  validater
+}

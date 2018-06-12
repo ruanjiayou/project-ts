@@ -1,8 +1,8 @@
-import * as crypto from 'crypto';
-import * as rp from 'request-promise';
-import * as _ from 'lodash';
-import * as moment from 'moment';
-var parseString = require('xml2js').parseString;
+const _ = require('lodash');
+const moment = require('moment');
+const crypto = require('crypto');
+const rp = require('request-promise');
+const parseString = require('xml2js').parseString;
 
 class wxHelper {
   /**

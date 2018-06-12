@@ -1,11 +1,10 @@
-import * as multer from 'multer';
-import * as Debug from 'debug';
-import * as fs from 'fs';
-import * as path from 'path';
-import { upload } from '../configs/upload';
+import { upload } from '../configs';
 
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 // 上传路径处理 ,上传文件重命名
-let storage = multer.diskStorage({
+const storage = multer.diskStorage({
   // 上传路径处理
   destination: upload.dest,
   // filename: function (req, file, cb) {  // file上传的文件信息, callback 重命名处理

@@ -1,4 +1,4 @@
-import { email as emailCfg } from '../configs/email';
+import { email as emailCfg } from '../configs';
 import { logger } from './logger';
 import * as _ from 'lodash';
 import * as nodemailer from 'nodemailer';
@@ -29,4 +29,8 @@ const sendMail = async (users, subject, html) => {
     });
     Promise.all(emails);
   }
+}
+
+export {
+  sendMail
 }

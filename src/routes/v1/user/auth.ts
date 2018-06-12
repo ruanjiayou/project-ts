@@ -1,8 +1,7 @@
-import UserBLL from '../../../BLL/UserBLL';
-import * as _ from 'lodash';
-import * as Debug from 'debug';
+import { UserBLL } from '../../../BLL';
 
-const debug = Debug('APP:user-auth');
+const _ = require('lodash');
+const debug = require('debug')('APP:user-auth');
 const userBLL = new UserBLL();
 
 module.exports = {

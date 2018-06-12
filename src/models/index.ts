@@ -1,8 +1,8 @@
 import * as  fs from 'fs';
 import * as  path from 'path';
 import * as  Sequelize from 'sequelize';
-import { mysql } from '../configs/mysql';
-import { loader } from '../libs/loader';
+import { mysql } from '../configs';
+import { loader } from '../libs';
 
 const MODE = process.env.NODE_ENV;
 // TODO:日志模块

@@ -9,11 +9,6 @@ const tsProject = ts.createProject('tsconfig.json');
 const pm2 = require('pm2');
 const path = require('path');
 
-// 生成NODE_ENV环境变量 启动项目时根据MODE读取对应env
-var createModeConfig = function (mode) {
-  fs.writeFileSync(path.join(__dirname, 'dist/node-env-mode.json'), JSON.stringify({ mode: mode }));
-};
-
 gulp.task('clean', () => {
   return gulp
     .src('./dist', { read: false })
@@ -36,7 +31,6 @@ gulp.task('dist', ['clean'], async () => {
       }))
       .pipe(gulp.dest('dist'))
       .on('finish', () => {
-        createModeConfig('dev');
         return resolve();
       });
   });
@@ -46,8 +40,8 @@ gulp.task('dist', ['clean'], async () => {
 
 // 本地发布(dev/test两种)
 var localPublish = (mode) => {
-  createModeConfig(mode);
   const env = require('./dist/configs/env').env[mode];
+  env.NODE_ENV = mode;
   var stream = nodemon({
     script: 'dist/app.js',
     watch: ['src'],
@@ -70,8 +64,8 @@ var localPublish = (mode) => {
 };
 // 线上发布(test/production两种)
 var onlinePublish = (mode) => {
-  createModeConfig(mode);
   const env = require('./dist/configs/env').env[mode];
+  env.NODE_ENV = mode;
   const sys = require('./dist/configs/system').system;
   var pmList = () => {
     return new Promise((resolve, reject) => {

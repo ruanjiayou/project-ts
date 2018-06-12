@@ -52,9 +52,8 @@ app.use(function (req, res, next) {
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { thrower } from './thrower';
-import configs from '../configs';
+import { auth as authConfig } from '../configs';
 
-const authConfig = configs.auth;
 /**
  * 安全问题:
  * 1.XSS 攻击 src中盗取cookie: 设置cookie 为httponly 或 使用库过滤

@@ -33,10 +33,11 @@ TODO:
 - redis缓存场景:少修改 数据多
 - user sign-in时的令牌问题 以及过期时间
 - *****ssr时的问题******
-- views不会生成到dist中: 写gulp.task? 放到static中?不行 用gulp-sequence ? 用gulp 4.0版本? 还是 await 前 dest吧
-- jwt 不带jwt空格
-- ssr 还是要用cookie
-- presenter paging()和return() 要抽离出来给ui ssr用
-- presenter page/limit->offset/limit 丢失page offset计算出错
+- √ views不会生成到dist中: 写gulp.task? 放到static中?不行 用gulp-sequence ? 用gulp 4.0版本? 还是 await 前 dest吧 2018-6-11 12:57:59 await 后复制的
+- √ jwt 不带jwt空格
+- √ ssr 还是要用cookie
+- √ presenter paging()和return() 要抽离出来给ui ssr用
+- √ presenter page/limit->offset/limit 丢失page offset计算出错
 - 要做测试: baseBLL init . 其他项目 里 没有持续跟踪本模板的更新 导致出了许多bug
+- 数据库备份
 ```

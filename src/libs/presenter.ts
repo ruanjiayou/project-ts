@@ -139,6 +139,6 @@ const presenter = (params: any) => {
   };
 };
 
-export = {
+export {
   presenter
 };

@@ -1,5 +1,5 @@
 import * as  fs from 'fs';
-import * as  path from 'path';
+const path = require('path');
 const dir = path.join(__dirname, 'routes');
 const extension = '.js';
 

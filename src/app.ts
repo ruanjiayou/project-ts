@@ -1,17 +1,15 @@
-import * as express from "express";
-import * as compression from "compression";
-import * as bodyParser from "body-parser";
-import * as cors from "cors";
-import * as ejs from "ejs";
-import * as path from "path";
-// import * as session from "express-session";
-import * as redis from "redis";
-import router from "./router";
-import configs from "./configs";
-import libs from "./libs";
+import { thrower, CustomError, logger, uploader, presenter, i18n } from "./libs";
 
+const express = require('express');
 const app = express();
-const { thrower, CustomError, logger, uploader, presenter, i18n } = libs;
+const router = require('./router').router;
+const cors = require('cors');
+const ejs = require('ejs');
+const path = require('path');
+const redis = require('redis');
+// const session = require('express-session');
+const bodyParser = require('body-parser');
+const compression = require('compression');
 const errorLogger = logger('error');
 /**
  * Express configuration.
@@ -27,7 +25,8 @@ app.engine('.html', ejs.__express);
 //只能设置分割符 新版本没有了
 //ejs.delimiter = '$';
 app.set("port", process.env.port || 3000);
-app.use(express.static("static"));
+app.use(express.static(path.join(__dirname, "../static")));
+app.use(express.json({ limit: '5mb' }));
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -67,7 +66,7 @@ app.use(presenter({
 }));
 
 /**
- * API examples routes.
+ * 所有业务API路由接口
  */
 router(app);
 
@@ -84,19 +83,17 @@ app.use(function (err, req, res, next) {
     err.module = 'common';
     err.type = 'unknown';
     res.customError(err);
-  } else {
-    // 404竟然不会进这里
-    // err.module = 'common';
-    // err.type = 'notFound';
-    // err.message = req.originalUrl;
-    // res.customError(err);
   }
 });
 
 // 8.404
 app.use(function (req, res, next) {
   if (!res.headersSent) {
-    res.status(404).json({ status: 'false', code: -1, message: '接口不存在' });
+    const err: any = new Error();
+    err.module = 'common';
+    err.type = 'notFound';
+    err.message = req.originalUrl;
+    res.customError(err);
   }
 });
 

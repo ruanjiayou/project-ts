@@ -13,16 +13,17 @@ const alterDatabase = async () => {
   try {
     if (argv.force === true) {
       await models.sequelize.sync({ force: true });
-      // 权限
-      await models.AdminMenu.seed();
-      // 角色
-      await models.AdminRole.seed();
-      // 角色的权限
-      await models.AdminRoleMenuMap.seed();
-      // 管理员
-      await models.Admin.seed();
-      // 管理员的角色
-      await models.AdminRoleMap.seed();
+      // // 权限
+      // await models.AdminMenu.seed();
+      // // 角色
+      // await models.AdminRole.seed();
+      // // 角色的权限
+      // await models.AdminRoleMenuMap.seed();
+      // // 管理员
+      // await models.Admin.seed();
+      // // 管理员的角色
+      // await models.AdminRoleMap.seed();
+      await models.User.seed();
     } else {
       await models.sequelize.sync();
     }

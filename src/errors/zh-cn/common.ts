@@ -28,5 +28,10 @@ export = {
     "code": 10250,
     "statusCode": 409,
     "message": "该API版本已不被支持"
+  },
+  "404": {
+    "code": -1,
+    "statusCode": 404,
+    "message": "API路径错误"
   }
 }

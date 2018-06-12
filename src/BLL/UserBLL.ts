@@ -1,4 +1,4 @@
-import libs from '../libs';
+import * as libs from '../libs';
 import * as _ from 'lodash';
 import * as mime from 'mime';
 import BaseBLL from './BaseBLL';
@@ -6,7 +6,7 @@ import { auth as authCfg } from '../configs/auth';
 import { upload as uploadCfg } from '../configs/upload';
 
 const tokenCfg: any = authCfg;
-const { auth, thrower, Validater, wxHelper, Cos, storer, uploader } = libs;
+const { auth, thrower, validater, wxHelper, txCos, storer, uploader } = libs;
 
 class UserBLL extends BaseBLL {
   constructor() {
@@ -14,7 +14,10 @@ class UserBLL extends BaseBLL {
     this.model = this.models.User;
     this.attributes = this.getAttributes();
   }
-  // 微信登录部分
+  /**
+   * token验证: 小程序环境鉴权
+   * @param req 请求对象
+   */
   async auth(req) {
     const data = auth.decode(req);
     const where = { token: data.token };
@@ -26,16 +29,16 @@ class UserBLL extends BaseBLL {
   }
   /**
    * 微信code登录
-   * @param data 数据
+   * @param body 请求body
    * @returns {string} openid的sha256...
    */
-  async authIn(data) {
-    const validation = new Validater({
+  async authIn(body) {
+    const validation = new validater({
       rules: {
         code: 'required|string'
       }
     });
-    const input = validation.validate(data);
+    const input = validation.validate(body);
     const wxInfo = await wxHelper.getWxOpenId(tokenCfg.wxAppId, tokenCfg.wxSecret, input.code);
     const where = { openid: wxInfo.openid };
     const user = await this.get({ where });
@@ -46,15 +49,19 @@ class UserBLL extends BaseBLL {
     await user.update({ token: wxToken });
     return wxToken;
   }
-  async authUp(data) {
-    const validation = new Validater({
+  /**
+   * 微信注册
+   * @param body 请求body
+   */
+  async authUp(body) {
+    const validation = new validater({
       rules: {
         code: 'required|string',
         phone: 'nullable|string',
         name: 'nullable|string'
       }
     });
-    const input = validation.validate(data);
+    const input = validation.validate(body);
     const wxInfo = await wxHelper.getWxOpenId(tokenCfg.wxAppId, tokenCfg.wxSecret, input.code);
     const where = { openid: wxInfo.openid };
     let user = await this.get({ where });
@@ -67,26 +74,31 @@ class UserBLL extends BaseBLL {
     }
     return user;
   }
-  // 密码登录部分
-  // 验证
+  /**
+   * token验证: 账号密码环境鉴权
+   * @param req 请求对象
+   */
   async sign(req) {
     const data = auth.decode(req);
     const where = { token: data.token };
-    const user = await this.get({ where })
+    const user = await this.get({ where });
     if (_.isNil(user)) {
-      thrower('auth', 'authFail')
+      thrower('auth', 'authFail');
     }
     return user;
   }
-  // 账号密码登录
-  async signIn(data) {
-    const validation = new Validater({
+  /**
+   * 账号密码登录
+   * @param body 请求body
+   */
+  async signIn(body) {
+    const validation = new validater({
       rules: {
         phone: 'required|string',
         password: 'required|string'
       }
     });
-    const input = validation.validate(data);
+    const input = validation.validate(body);
     const where = { phone: input.phone };
     const user = await this.get({ where });
     if (_.isNil(user)) {
@@ -105,9 +117,14 @@ class UserBLL extends BaseBLL {
     return authorization;
   }
   // 账号密码注册
+  /**
+   * 账号密码注册
+   * @param req 请求对象
+   * @param opts 可选选项对象
+   */
   async signUp(req, opts: any = {}) {
     const opt = this._init(opts);
-    const validation = new Validater({
+    const validation = new validater({
       rules: {
         name: 'required|string',
         phone: 'required|string',
@@ -135,9 +152,14 @@ class UserBLL extends BaseBLL {
     user = await this.model.create(input, { transaction: opt.transaction });
     return user;
   }
+  /**
+   * 修改用户
+   * @param req 请求对象
+   * @param opts 可选选项对象
+   */
   async update(req, opts: any = {}) {
     const opt = this._init(opts);
-    const validation = new Validater({
+    const validation = new validater({
       rules: {
         id: 'required|int',
         name: 'nullable|string',

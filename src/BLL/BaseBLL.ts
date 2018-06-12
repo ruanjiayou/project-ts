@@ -30,7 +30,7 @@ class BaseBLL {
   models = models;
   attributes = [];
   /**
-   * 
+   * 处理转化参数
    * @param opts 对象处理转换[t][where][query:where,limit,offset,order][scopes][attributes]
    */
   _init(opts: Opts) {
@@ -99,7 +99,11 @@ class BaseBLL {
   getAttributes() {
     return this.model.getAttributes();
   }
-  // 只有t参数
+  /**
+   * 创建
+   * @param data 数据
+   * @param [t] 事物
+   */
   async create(data, t = {}) {
     const res = await this.model.create(data, t);
     return res;

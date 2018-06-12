@@ -1,13 +1,12 @@
-import configs from '../configs/';
-import * as mime from 'mime';
-import * as _ from 'lodash';
-import * as moment from 'moment';
 import { thrower } from './thrower';
+import { txCos as cosCfg } from '../configs/';
+
+const _ = require('lodash');
+const mime = require('mime');
+const moment = require('moment');
 const fs = require('fs');
 const path = require('path');
-const cosCfg = configs.txCos;
 const COS = require('cos-nodejs-sdk-v5');
-
 const cos = new COS({
   SecretId: cosCfg.sid,
   SecretKey: cosCfg.skey

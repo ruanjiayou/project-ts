@@ -9,6 +9,7 @@ import models from '../models';
  */
 interface Opts {
   t?: any;
+  transaction?: any;
   query?: any;
   where?: any;
   scopes?: any;
@@ -22,7 +23,7 @@ interface Opts {
  * 3.
  * TODO:
  * 1.transaction 等参数为null 有什么影响? findxxx()里多了scopes
- * 2.多重事物与多次传递opts(主要是t->transcation)
+ * 2.多重事物与多次传递opts(主要是t->transaction)
  * 3.只是基础功能, 复杂的要重写
  * 4.排序的字段是model中有的
  */
@@ -39,6 +40,9 @@ class BaseBLL {
     // 允许多次调用_init()
     opts = _.cloneDeep(opts);
     opt.transaction = _.isNil(opts.t) ? null : opts.t;
+    if (opts.transaction) {
+      opt.transaction = opts.transaction;
+    }
     opt.scopes = _.isArray(opts.scopes) ? opts.scopes : [];
     opt.where = _.isNil(opts.where) ? {} : opts.where;
     if (_.isNil(opts.where)) {

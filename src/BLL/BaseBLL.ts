@@ -13,6 +13,7 @@ interface Opts {
   where?: any;
   scopes?: any;
   attributes?: any;
+  distinct?: string;
 }
 /**
  * 设计说明: 继承类尽可能不重写方法
@@ -28,7 +29,7 @@ interface Opts {
 class BaseBLL {
   model: any;
   models = models;
-  attributes = [];
+  attributes = new Set();
   /**
    * 处理转化参数
    * @param opts 对象处理转换[t][where][query:where,limit,offset,order][scopes][attributes]
@@ -52,15 +53,21 @@ class BaseBLL {
       opt.attributes = [];
       const exclude = [];
       opts.attributes.forEach((attr) => {
-        if (/^[!]/.test(attr) && this.attributes.indexOf(attr.substr(1)) !== -1) {
+        if (/^[!]/.test(attr) && this.attributes.has(attr.substr(1))) {
           exclude.push(attr.substr(1));
-        } else if (this.attributes.indexOf(attr) !== -1) {
+        } else if (this.attributes.has(attr)) {
           opt.attributes.push(attr);
         }
       });
       if (exclude.length !== 0) {
         opt.attributes = { exclude };
       }
+    }
+    // 笛卡尔积重复的问题
+    if (_.isString(opts.distinct) && this.attributes.has(opts.distinct)) {
+      opt.include = [];
+      opt.distinct = true;
+      opt.col = opts.distinct;
     }
     // id或paging()生成的query有limit where offset order
     // order排序
@@ -72,17 +79,18 @@ class BaseBLL {
         _.assign(opt.where, opts.query.where);
         delete opts.query.where;
       }
-      // 指定列
+      // 指定列与排除列
       _.assign(opt, opts.query);
       if (_.isString(opts.query.order)) {
         opts.query.order = [].push(opts.query.order);
       }
+      // 排序字段验证
       if (_.isArray(opts.query.order)) {
         opt.order = [];
         opts.query.order.forEach((item) => {
           if (_.isString(item)) {
             const order = item.split('-');
-            if (this.attributes.indexOf(order[0]) !== -1 && ['DESC', 'ASC'].indexOf(order[1]) !== -1) {
+            if (this.attributes.has(order[0]) && ['DESC', 'ASC'].indexOf(order[1]) !== -1) {
               opt.order.push(order);
             }
           } else if (_.isArray(item)) {

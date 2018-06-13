@@ -1,3 +1,4 @@
+
 import { thrower, CustomError, logger, uploader, presenter, i18n } from "./libs";
 
 const express = require('express');
@@ -10,7 +11,8 @@ const redis = require('redis');
 // const session = require('express-session');
 const bodyParser = require('body-parser');
 const compression = require('compression');
-const errorLogger = logger('error');
+//const errorLogger = logger('error');
+
 /**
  * Express configuration.
  */
@@ -24,7 +26,7 @@ app.set('view engine', 'html');
 app.engine('.html', ejs.__express);
 //只能设置分割符 新版本没有了
 //ejs.delimiter = '$';
-app.set("port", process.env.port || 3000);
+app.set("port", process.env.port);
 app.use(express.static(path.join(__dirname, "../static")));
 app.use(express.json({ limit: '5mb' }));
 app.use(compression());
@@ -97,16 +99,4 @@ app.use(function (req, res, next) {
   }
 });
 
-// 9.宕机
-process.on('uncaughtException', (err) => {
-  errorLogger.error(`uncaughtException ${err.toString()}`);
-  console.error(err, 'uncaughtException');
-});
-process.on('unhandledRejection', (reason) => {
-  errorLogger.error(`unhandledRejection ${reason.toString()}`);
-  console.error(reason, 'unhandledRejection');
-});
-
-app.listen(app.get('port'), () => {
-  console.log(('  App is running at http://localhost:%d in >> %s << mode'), app.get('port'), app.get('env'));
-});
+module.exports = app;

@@ -1,5 +1,6 @@
 const system = {
-  project: 'project-ts-template',
+  name: 'nodejs后端模板',
+  team: '',
   wxAppId: '',
   wxSecret: ''
 }

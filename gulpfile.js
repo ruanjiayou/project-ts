@@ -3,7 +3,6 @@ const nodemon = require('gulp-nodemon');
 const sourcemaps = require('gulp-sourcemaps');
 const clean = require('gulp-clean');
 const ts = require('gulp-typescript');
-const fs = require('fs');
 const apidoc = require('gulp-apidoc');
 const tsProject = ts.createProject('tsconfig.json');
 const pm2 = require('pm2');
@@ -43,7 +42,7 @@ var localPublish = (mode) => {
   const env = require('./dist/configs/env').env[mode];
   env.NODE_ENV = mode;
   var stream = nodemon({
-    script: 'dist/app.js',
+    script: './lanch.js',
     watch: ['src'],
     ext: 'ts json html',
     tasks: ['dist'],
@@ -54,10 +53,10 @@ var localPublish = (mode) => {
     .on('restart', () => { console.log('restarted!'); })
     .on('crash', (err) => {
       console.error(err);
-      console.error('Application has crashed!\n');
+      console.error('服务器挂了,server crashed!\n');
       stream.emit('restart', 10);  // restart the server in 10 seconds
     })
-    .on('exit', (code) => {
+    .on('exit', (/* code */) => {
       //stream.emit('quit');
       //process.exit(code);
     });
@@ -66,7 +65,6 @@ var localPublish = (mode) => {
 var onlinePublish = (mode) => {
   const env = require('./dist/configs/env').env[mode];
   env.NODE_ENV = mode;
-  const sys = require('./dist/configs/system').system;
   var pmList = () => {
     return new Promise((resolve, reject) => {
       pm2.list((err, list) => {
@@ -92,8 +90,8 @@ var onlinePublish = (mode) => {
         // 可在这里修改env的port
         // env.port = 3010;
         pm2.start({
-          name: sys.project,
-          script: './dist/app.js',         // Script to be run
+          name: env.project,
+          script: './launch.js',         // Script to be run
           env: env,
         }, (err) => {
           if (err) return reject(err);

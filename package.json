@@ -66,6 +66,7 @@
     "@types/errorhandler": "0.0.30",
     "@types/express": "^4.0.35",
     "@types/express-session": "^1.15.8",
+    "@types/i18n": "^0.8.3",
     "@types/jsonwebtoken": "^7.2.7",
     "@types/lodash": "^4.14.63",
     "@types/mime": "^2.0.0",

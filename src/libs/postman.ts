@@ -8,27 +8,23 @@ const emailLogger = logger('email');
 // 开启一个SMTP连接池
 const transport = nodemailer.createTransport(smtpTransport(emailCfg));
 const sendMail = async (users, subject, html) => {
-  emailLogger.info('');
+  emailLogger.info('xxx');
   const opts = {
-    from: ``,
+    from: emailCfg.auth.user,
     subject,
     html
   };
-  const emails = [];
-  for (let i = 0; i < users.length; i++) {
-    let user = users[i];
-    emails.push(async () => {
-      // 发送邮件
-      await transport.sendMail(_.extend(opts, {
-        to: `${user.name} <${user.email}>`
-      }), (err, res) => {
-        if (err) {
-          console.log(err, 'send email error');
-        }
-      });
-    });
-    Promise.all(emails);
-  }
+  const to = users.map((user) => { return user.email; }).join(', ');
+  await transport.sendMail(_.extend(opts, {
+    to
+  }), (err, res) => {
+    if (err) {
+      console.log(err, 'send email error');
+    } else {
+      console.log('Message sent: %s', res.messageId);
+      console.log('preview url: %s', nodemailer.getTestMessageUrl(res));
+    }
+  });
 }
 
 export {

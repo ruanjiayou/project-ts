@@ -14,6 +14,11 @@
 // );
 // export default libs;
 
+import * as _ from 'lodash';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as moment from 'moment';
+import * as Debug from 'debug';
 import { auth } from './auth';
 import { i18n } from './i18n';
 import { loader } from './loader';
@@ -25,9 +30,14 @@ import { thrower, CustomError } from './thrower';
 import { txCos } from './txCos';
 import { uploader, storer } from './uploader';
 import { validater } from './validater';
-import { wxHelper, WXBizDataCrypt, wxPayHelper } from './wxHelper';
+import { wxHelper, wxPayHelper } from './wxHelper';
 
 export {
+  _,
+  fs,
+  path,
+  moment,
+  Debug,
   auth,
   i18n,
   loader,
@@ -42,6 +52,5 @@ export {
   storer,
   validater,
   wxHelper,
-  WXBizDataCrypt,
   wxPayHelper
 }

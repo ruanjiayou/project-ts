@@ -1,11 +1,12 @@
 import * as _ from 'lodash';
 import models from '../models';
 /**
- * t: transaction
+ * t/transaction: transaction
  * query: limit/offset/where/order/search
  * where: 同query的where
  * scopes: include数组
  * attributes: include或exclude数组
+ * distinct: 去重
  */
 interface Opts {
   t?: any;

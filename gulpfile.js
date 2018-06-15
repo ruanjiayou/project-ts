@@ -42,7 +42,7 @@ var localPublish = (mode) => {
   const env = require('./dist/configs/env').env[mode];
   env.NODE_ENV = mode;
   var stream = nodemon({
-    script: './lanch.js',
+    script: './launch.js',
     watch: ['src'],
     ext: 'ts json html',
     tasks: ['dist'],

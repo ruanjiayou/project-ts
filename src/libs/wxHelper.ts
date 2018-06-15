@@ -131,18 +131,17 @@ class wxHelper {
     }
     return wxInfo;
   }
-}
-
-class WXBizDataCrypt {
-  private appId: string;
-  private sessionKey: string;
-  constructor(appId: string, sessionKey: string) {
-    this.appId = appId;
-    this.sessionKey = sessionKey;
-  }
-  public decryptData(encryptedData: any, iv: any) {
+  /**
+   * 从加密数据中获取手机号
+   * @param appid 小程序appid
+   * @param sessionKey 临时key(2小时)
+   * @param encryptedData 加密数据
+   * @param iv 加密向量
+   * @returns countryCode/phoneNumber/purePhoneNumber
+   */
+  static getInfo(appid, sessionKey, encryptedData, iv) {
     // base64 decode
-    const sessionKeyBuf = new Buffer(this.sessionKey, "base64");
+    const sessionKeyBuf = new Buffer(sessionKey, "base64");
     const encryptedDataBuf = new Buffer(encryptedData, "base64");
     const ivBuf = new Buffer(iv, "base64");
     let decoded: any;
@@ -154,7 +153,7 @@ class WXBizDataCrypt {
       decoded = decipher.update(encryptedDataBuf, "binary", "utf8");
       decoded += decipher.final("utf8");
       decoded = JSON.parse(decoded);
-      if (decoded.watermark.appid !== this.appId) {
+      if (decoded.watermark.appid !== appid) {
         throw new Error("Illegal Buffer");
       }
       return decoded;
@@ -162,6 +161,7 @@ class WXBizDataCrypt {
       console.error(err);
       decoded = null;
     }
+    return decoded;
   }
 }
 
@@ -321,4 +321,4 @@ class wxPayHelper {
   }
 }
 
-export { wxHelper, WXBizDataCrypt, wxPayHelper };
+export { wxHelper, wxPayHelper };

@@ -45,6 +45,32 @@ module.exports = {
     }
   },
   /**
+   * @api {PUT} /v1/user/password 修改密码
+   * @apiGroup UserSelf
+   * 
+   * @apiParam {string} password 密码
+   * 
+   * @apiSuccessExample Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   status: 'success'
+   * }
+   */
+  'PUT /v1/user/password': async (req, res, next) => {
+    debug(`enter ${req.method} ${req.originalUrl} route`);
+    try {
+      req.body.id = res.locals.userAuth.id;
+      const status = await userBLL.changePassword(req.body);
+      if (status) {
+        res.success();
+      } else {
+        res.fail();
+      }
+    } catch (err) {
+      next(err);
+    }
+  },
+  /**
    * @api {GET} /v1/user/self 获取个人资料
    * @apiGroup UserSelf
    * 

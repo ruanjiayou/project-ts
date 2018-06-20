@@ -3,9 +3,8 @@
  * @description 刷新数据库
  * @time 2018-4-3 17:19:36
  */
-const MODE = require('../node-env-mode').mode;
 const argv = getArgv();
-process.env.NODE_ENV = argv.mode || MODE;
+process.env.NODE_ENV = argv.mode || 'dev';
 const models = require('../models').default;
 
 const alterDatabase = async () => {

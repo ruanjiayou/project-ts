@@ -1,4 +1,4 @@
-
+import { upload } from './configs/upload';
 import { thrower, CustomError, logger, uploader, presenter, i18n } from "./libs";
 
 const express = require('express');
@@ -28,10 +28,10 @@ app.engine('.html', ejs.__express);
 //ejs.delimiter = '$';
 app.set("port", process.env.port);
 app.use(express.static(path.join(__dirname, "../static")));
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: upload.limits.fileSize }));
 app.use(compression());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: upload.limits.fileSize }));
+app.use(bodyParser.urlencoded({ limit: upload.limits.fileSize, extended: true }));
 app.use(cors());
 // i18n
 app.use(i18n.init);

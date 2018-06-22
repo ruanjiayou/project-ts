@@ -55,7 +55,8 @@ export default (sequelize, DataTypes) => {
                 model: sequelize.models.Auth,
                 attributes: ['id', 'name'],
                 through: {
-                  model: sequelize.models.AdminAuth
+                  model: sequelize.models.AdminAuth,
+                  attributes: []
                 }
               }
             ]

@@ -58,12 +58,28 @@ module.exports = {
     debug(`enter ${req.method} ${req.originalUrl} route`);
     const data = _.assign(req.body, req.files);
     try {
-      const user = await userBLL.signUp(req);
+      const user = await userBLL.signUp(data);
       res.return(_.omit(user.get({ plain: true }), ['password', 'salt', 'createdAt', 'updatedAt']));
     } catch (err) {
       next(err);
     }
   },
-  'POST /v1/auth/user/oauth-in': async (req, res, next) => { },
-  'POST /v1/auth/user/oauth-up': async (req, res, next) => { }
+  'POST /v1/auth/user/oauth-in': async (req, res, next) => {
+    debug(`enter ${req.method} ${req.originalUrl} route`);
+    try {
+      const token = await userBLL.authIn(req.body);
+      res.return({ token });
+    } catch (err) {
+      next(err);
+    }
+  },
+  'POST /v1/auth/user/oauth-up': async (req, res, next) => {
+    debug(`enter ${req.method} ${req.originalUrl} route`);
+    try {
+      const resp = await userBLL.authUp(req.body);
+      res.return(resp);
+    } catch (err) {
+      next(err);
+    }
+  }
 }

@@ -4,6 +4,7 @@ import * as mime from 'mime';
 import BaseBLL from './BaseBLL';
 import { auth as authCfg } from '../configs/auth';
 import { upload as uploadCfg } from '../configs/upload';
+import { system as systemCfg } from '../configs/system';
 
 const tokenCfg: any = authCfg;
 const { auth, thrower, validater, wxHelper, txCos, storer, uploader } = libs;
@@ -39,15 +40,23 @@ class UserBLL extends BaseBLL {
       }
     });
     const input = validation.validate(body);
-    const wxInfo = await wxHelper.getWxOpenId(tokenCfg.wxAppId, tokenCfg.wxSecret, input.code);
+    const wxInfo = await wxHelper.getWxOpenId(systemCfg.wxAppId, systemCfg.wxSecret, input.code);
     const where = { openid: wxInfo.openid };
     const user = await this.get({ where });
     if (_.isNil(user)) {
       thrower('auth', 'error');
     }
-    const wxToken = wxHelper.generateToken(wxInfo.openid);
-    await user.update({ token: wxToken });
-    return wxToken;
+    //const wxToken = wxHelper.generateToken(wxInfo.openid);
+    //await user.update({ token: wxToken });
+    //return wxToken;
+    const token = new Date().getTime();
+    const authorization = auth.encode({
+      role: 'user',
+      id: user.id,
+      token
+    });
+    await user.update({ token });
+    return authorization;
   }
   /**
    * 微信注册
@@ -62,7 +71,7 @@ class UserBLL extends BaseBLL {
       }
     });
     const input = validation.validate(body);
-    const wxInfo = await wxHelper.getWxOpenId(tokenCfg.wxAppId, tokenCfg.wxSecret, input.code);
+    const wxInfo = await wxHelper.getWxOpenId(systemCfg.wxAppId, systemCfg.wxSecret, input.code);
     const where = { openid: wxInfo.openid };
     let user = await this.get({ where });
     if (_.isNil(user)) {
@@ -70,7 +79,7 @@ class UserBLL extends BaseBLL {
       input.token = wxToken;
       user = await this.model.create(input);
     } else {
-      thrower('auth', 'exists');
+      thrower('auth', 'existed');
     }
     return user;
   }
@@ -122,19 +131,17 @@ class UserBLL extends BaseBLL {
    * @param req 请求对象
    * @param opts 可选选项对象
    */
-  async signUp(req, opts: any = {}) {
+  async signUp(data, opts: any = {}) {
     const opt = this._init(opts);
     const validation = new validater({
       rules: {
         name: 'required|string',
         phone: 'required|string',
-        password: 'required|string'
-      },
-      files: {
+        password: 'required|string',
         avatar: 'nullable|file:png,jpg,jpeg,gif'
       }
     });
-    const input = validation.validate(req.body);
+    const input = validation.validate(data);
     input.salt = new Date().getTime().toString();
     input.password = this.model.calculatePSW(input.password, input.salt);
     const where = { phone: input.phone };
@@ -142,13 +149,13 @@ class UserBLL extends BaseBLL {
     if (!_.isNil(user)) {
       thrower('auth', 'existed');
     }
-    await validation.validateFile(req.files, async (files) => {
-      let avatar = files.avatar;
-      if (avatar && avatar.length !== 0) {
-        avatar = avatar[0];
-        input.avatar = storer('image/avatar', avatar);
-      }
-    });
+    // await validation.validateFile(req.files, async (files) => {
+    //   let avatar = files.avatar;
+    //   if (avatar && avatar.length !== 0) {
+    //     avatar = avatar[0];
+    //     input.avatar = storer('image/avatar', avatar);
+    //   }
+    // });
     user = await this.model.create(input, { transaction: opt.transaction });
     return user;
   }
@@ -181,6 +188,24 @@ class UserBLL extends BaseBLL {
     const user = await this.get({ query });
     await user.update(input, opt);
     return user;
+  }
+  /**
+   * 修改密码
+   */
+  async changePassword(data, opts: any = {}) {
+    const opt = this._init(opts);
+    const validation = new validater({
+      rules: {
+        id: 'required|int',
+        password: 'required|string'
+      }
+    });
+    const input = validation.validate(data);
+    const user = await this.model.findById(input.id);
+    const salt = new Date().getTime().toString();
+    const password = this.model.calculatePSW(input.password, salt);
+    const token = null;
+    return await user.update({ password, salt, token });
   }
 }
 

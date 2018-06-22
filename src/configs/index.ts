@@ -26,6 +26,7 @@ import { system } from './system';
 import { txCos } from './txCos';
 import { upload } from './upload';
 import { version } from './version';
+import { aliSms } from './aliSms';
 
 export {
   auth,
@@ -37,5 +38,6 @@ export {
   system,
   txCos,
   upload,
-  version
+  version,
+  aliSms
 }

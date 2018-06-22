@@ -22,6 +22,9 @@ const alterDatabase = async () => {
       // await models.Admin.seed();
       // // 管理员的角色
       // await models.AdminRoleMap.seed();
+      await models.Admin.seed();
+      await models.Auth.seed();
+      await models.AdminAuth.seed();
       await models.User.seed();
     } else {
       await models.sequelize.sync();

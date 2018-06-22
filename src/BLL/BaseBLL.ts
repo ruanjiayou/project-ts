@@ -107,10 +107,24 @@ class BaseBLL {
     return opt;
   }
   /**
+   * 执行原生sql语句
+   * @param sql sql语句
+   */
+  async query(sql) {
+    const res = await this.models.sequelize.query(sql);
+    return res[0];
+  }
+  /**
    * 获取model的属性数组
    */
   getAttributes() {
     return this.model.getAttributes();
+  }
+  /**
+   * 生成一个事物
+   */
+  async getTransaction() {
+    return this.models.sequelize.transaction();
   }
   /**
    * 创建
@@ -125,7 +139,7 @@ class BaseBLL {
    * 删除数据
    */
   async destroy(opts: Opts) {
-    const opt = _.pick(this._init(opts), ['where', 'transaction']);
+    const opt = this._init(opts);
     return await this.model.destroy(opt);
   };
   /**

@@ -22,6 +22,7 @@
     "url": "http://127.0.0.1:3000"
   },
   "dependencies": {
+    "@alicloud/sms-sdk": "^1.1.1",
     "async": "^2.2.0",
     "body-parser": "^1.15.2",
     "compression": "^1.6.2",

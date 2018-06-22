@@ -31,6 +31,9 @@ import { txCos } from './txCos';
 import { uploader, storer } from './uploader';
 import { validater } from './validater';
 import { wxHelper, wxPayHelper } from './wxHelper';
+import { IO } from './io';
+import { excelHelper } from './excelHelper';
+import { smsHelper } from './smsHelper';
 
 export {
   _,
@@ -52,5 +55,8 @@ export {
   storer,
   validater,
   wxHelper,
-  wxPayHelper
+  wxPayHelper,
+  IO,
+  excelHelper,
+  smsHelper
 }

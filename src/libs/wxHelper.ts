@@ -98,7 +98,7 @@ class wxHelper {
   /**
    * 微信信息生成token,用于登录
    */
-  static async generateToken(seed) {
+  static generateToken(seed) {
     const hash = crypto.createHash('sha256');
     try {
       hash.update(seed);

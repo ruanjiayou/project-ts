@@ -4,6 +4,8 @@ const sourcemaps = require('gulp-sourcemaps');
 const clean = require('gulp-clean');
 const ts = require('gulp-typescript');
 const apidoc = require('gulp-apidoc');
+const uglify = require('gulp-uglify');
+const babel = require('gulp-babel');
 const tsProject = ts.createProject('tsconfig.json');
 const pm2 = require('pm2');
 const path = require('path');
@@ -23,11 +25,15 @@ gulp.task('dist', ['clean'], async () => {
     tsProject.src()
       .pipe(sourcemaps.init())
       .pipe(tsProject()).js
-      .pipe(sourcemaps.write('./maps', {
-        sourceRoot: (file) => {
-          return path.join(file.cwd, 'lib');
-        }
+      // .pipe(sourcemaps.write('./maps', {
+      //   sourceRoot: (file) => {
+      //     return path.join(file.cwd, 'lib');
+      //   }
+      // }))
+      .pipe(babel({
+        presets: ['es2015'] // es5检查机制
       }))
+      .pipe(uglify())
       .pipe(gulp.dest('dist'))
       .on('finish', () => {
         return resolve();

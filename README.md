@@ -42,9 +42,13 @@ TODO:
 - render()前端部分: ejs/handlebars?
 2018-6-20 09:45:18
 ```
-统一文件上传限制;去掉生成的临时env.js文件;新增普通权限管理(3表,区别5表)
-TODO: user put中参数不是可选的
-BaseBLL的t()方法
+√ 统一文件上传限制;去掉生成的临时env.js文件;新增普通权限管理(3表,区别5表)
+TODO: 
+user put中参数不是可选的
+√ BaseBLL的getTransaction()/query()方法
 opt参数大全: http://docs.sequelizejs.com/class/lib/model.js~Model.html
-2018-6-21 14:35:38 storer返回json
+√ 2018-6-21 14:35:38 storer返回json
+2018-6-22 22:42:39 token验证中,expiredIn改为user表中的expiredAt字段,jwt.verify()改为decode();单点登录和多点登录控制sign()/auth()=>verify
+短信修改模板审核的问题
 ```
+2018-6-27 14:47:32

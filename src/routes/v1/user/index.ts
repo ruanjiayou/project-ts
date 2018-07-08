@@ -19,8 +19,8 @@ module.exports = {
    * @api {PUT} /v1/user/self 修改个人资料
    * @apiGroup UserSelf
    * 
-   * @apiParam {string} name 姓名
-   * @apiParam {file='jpg','png','jpeg','gif'} avatar 头像
+   * @apiParam {string} [name] 姓名
+   * @apiParam {file='jpg','png','jpeg','gif'} [avatar] 头像
    * 
    * @apiSuccessExample Success-Response:
    * HTTP/1.1 200 OK

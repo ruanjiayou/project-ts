@@ -8,7 +8,6 @@ const uglify = require('gulp-uglify');
 const babel = require('gulp-babel');
 const tsProject = ts.createProject('tsconfig.json');
 const pm2 = require('pm2');
-const path = require('path');
 
 gulp.task('clean', () => {
   return gulp

@@ -64,7 +64,7 @@ module.exports = {
       next(err);
     }
   },
-  'POST /v1/auth/user/oauth-in': async (req, res, next) => {
+  'POST /v1/auth/user/auth-in': async (req, res, next) => {
     debug(`enter ${req.method} ${req.originalUrl} route`);
     try {
       const token = await userBLL.authIn(req.body);
@@ -73,7 +73,7 @@ module.exports = {
       next(err);
     }
   },
-  'POST /v1/auth/user/oauth-up': async (req, res, next) => {
+  'POST /v1/auth/user/auth-up': async (req, res, next) => {
     debug(`enter ${req.method} ${req.originalUrl} route`);
     try {
       const resp = await userBLL.authUp(req.body);

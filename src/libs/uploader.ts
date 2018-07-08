@@ -29,18 +29,29 @@ let uploader = multer({
 }).fields(upload.fields);
 
 //TODO:用file signature检查文件头而不只是拓展名
-function storer(dir, file): string {
-  const folder = path.join(upload.localPath, dir);
-  const filename = '';
-  let key = '', fullpath = '', ext = path.extname(file.originalname).substring(1).toLowerCase();
-  IO.mkdirs(`${upload.localPath}/${dir}`);
+/**
+ * 保存文件到指定位置(随机文件名),返回信息对象
+ * @param dir 保存目录,支持多级
+ * @param file 文件对象
+ */
+function storer(dir, file) {
+  const info: any = {
+    root: upload.localPath,
+    dir,
+    name: '',
+    ext: ''
+  };
+  let fullpath = '';
+  info.ext = path.extname(file.originalname).substring(1).toLowerCase();
+  IO.mkdirs(`${info.root}/${info.dir}`);
   do {
-    key = IO.GUID();
-    fullpath = `${upload.localPath}/${dir}/${key}.${ext}`;
+    info.key = IO.GUID();
+    fullpath = `${info.root}/${info.dir}/${info.key}.${info.ext}`;
   } while (IO.isFileExists(fullpath));
   const oldpath = path.join(file.destination, file.filename);
   fs.renameSync(oldpath, fullpath);
-  return `/${dir}/${key}.${ext}`;
+  return info;
+  //return `/${dir}/${key}.${ext}`;
 }
 
 export { uploader, storer }

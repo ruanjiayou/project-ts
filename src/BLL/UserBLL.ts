@@ -149,13 +149,11 @@ class UserBLL extends BaseBLL {
     if (!_.isNil(user)) {
       thrower('auth', 'existed');
     }
-    // await validation.validateFile(req.files, async (files) => {
-    //   let avatar = files.avatar;
-    //   if (avatar && avatar.length !== 0) {
-    //     avatar = avatar[0];
-    //     input.avatar = storer('image/avatar', avatar);
-    //   }
-    // });
+    if (!_.isNil(input.avatar) && input.avatar.length !== 0) {
+      let avatar = input.avatar[0];
+      let info = storer('image/avatar', avatar);
+      input.avatar = `${info.dir}/${info.name}.${info.ext}`;
+    }
     user = await this.model.create(input, { transaction: opt.transaction });
     return user;
   }

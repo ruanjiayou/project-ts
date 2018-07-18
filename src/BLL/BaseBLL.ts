@@ -87,7 +87,7 @@ class BaseBLL {
       // 指定列与排除列
       _.assign(opt, opts.query);
       if (_.isString(opts.query.order)) {
-        opts.query.order = [].push(opts.query.order);
+        opts.query.order = [opts.query.order];
       }
       // 排序字段验证
       if (_.isArray(opts.query.order)) {

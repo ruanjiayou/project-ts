@@ -3,6 +3,7 @@ const moment = require('moment');
 const crypto = require('crypto');
 const rp = require('request-promise');
 const parseString = require('xml2js').parseString;
+const request = require('request');
 
 class wxHelper {
   /**
@@ -162,6 +163,62 @@ class wxHelper {
       decoded = null;
     }
     return decoded;
+  }
+
+  /**
+   * 获取小程序二维码
+   * @param wxCfg
+   * @param input page/scene/width/is_hyaline
+   * @param type url/base64/stream
+   * 用法,小心stream
+   * const result = await wxHelper.getWxMicroQrcode(system, input, 'base64');
+   * const result = await wxHelper.getWxMicroQrcode(system, input, 'url');
+   * (await wxHelper.getWxMicroQrcode(system, input, 'stream')).pipe(res);
+   */
+  static async getWxMicroQrcode(wxCfg, input, type = 'url') {
+    const accessToken = await wxHelper.getAccessToken(wxCfg);
+    if (type === 'stream') {
+      return request({
+        method: 'POST',
+        url: 'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' + accessToken,
+        body: input,
+        json: true
+      });
+    } else {
+      const rs: any = await request({
+        method: 'POST',
+        url: 'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' + accessToken,
+        body: input,
+        json: true
+      });
+      if (type === 'stream') {
+        return rs;
+      }
+      //生成随机文件名
+      const filename = '/image/qr-' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx.png'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      }).toUpperCase();
+      const fullpath = 'D:\\projects\\mall-template-ts\\static\\' + filename;
+      await new Promise(function (resolve, reject) {
+        // 文件流保存
+        const ws = fs.createWriteStream(fullpath);
+        ws.on('finish', function () {
+          resolve(true);
+        });
+        rs.pipe(ws);
+      });
+      if (type === 'url') {
+        return filename;
+      } else {
+        // 文件转base64
+        let rawdata = fs.readFileSync(fullpath);
+        rawdata = new Buffer(rawdata).toString('base64');
+        const result = 'data:image/png;base64,' + rawdata;
+        fs.unlink(fullpath);
+        return result;
+      }
+    }
   }
 }
 
